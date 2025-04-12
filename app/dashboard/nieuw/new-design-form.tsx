@@ -1,26 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { RoomTypeSelector } from "@/components/room-type-selector"
-import { StyleSelector } from "@/components/style-selector"
-import { ImageUpload } from "@/components/image-upload"
-import { useToast } from "@/hooks/use-toast"
-import { Zap } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { RoomTypeSelector } from "@/components/room-type-selector";
+import { StyleSelector } from "@/components/style-selector";
+import { ImageUpload } from "@/components/image-upload";
+import { useToast } from "@/hooks/use-toast";
+import { Zap } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface NewDesignFormProps {
-  credits: number
+  credits: number;
 }
 
 export function NewDesignForm({ credits }: NewDesignFormProps) {
-  const [roomType, setRoomType] = useState("woonkamer")
-  const [style, setStyle] = useState("modern")
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
+  const [roomType, setRoomType] = useState("woonkamer");
+  const [style, setStyle] = useState("modern");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleSubmit = () => {
     if (!imageUrl) {
@@ -28,11 +31,12 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
         title: "Fout",
         description: "Upload eerst een afbeelding",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
+    setError(null);
 
     // Use a regular promise pattern instead of async/await
     fetch("/api/design", {
@@ -49,29 +53,35 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
       .then((response) => response.json())
       .then((data) => {
         if (!data.success) {
-          throw new Error(data.error || "Er is een fout opgetreden")
+          throw new Error(data.error || "Er is een fout opgetreden");
         }
 
         toast({
           title: "Succes!",
           description: "Je ontwerp is succesvol gemaakt",
-        })
+        });
 
-        router.push("/dashboard")
-        router.refresh()
+        router.push("/dashboard");
+        router.refresh();
       })
       .catch((error) => {
-        console.error("Error creating design:", error)
+        console.error("Error creating design:", error);
+        setError(
+          error.message ||
+            "Er is een fout opgetreden bij het maken van je ontwerp"
+        );
         toast({
           title: "Fout",
-          description: "Er is een fout opgetreden bij het maken van je ontwerp",
+          description:
+            error.message ||
+            "Er is een fout opgetreden bij het maken van je ontwerp",
           variant: "destructive",
-        })
+        });
       })
       .finally(() => {
-        setIsSubmitting(false)
-      })
-  }
+        setIsSubmitting(false);
+      });
+  };
 
   return (
     <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
@@ -84,6 +94,14 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
             </div>
           </div>
 
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Fout</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <RoomTypeSelector onChange={setRoomType} />
 
           <StyleSelector onChange={setStyle} />
@@ -91,7 +109,10 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
           <ImageUpload onUpload={setImageUrl} />
 
           <div className="pt-4">
-            <Button onClick={handleSubmit} disabled={!imageUrl || isSubmitting} className="w-full rounded-full h-12">
+            <Button
+              onClick={handleSubmit}
+              disabled={!imageUrl || isSubmitting}
+              className="w-full rounded-full h-12">
               {isSubmitting ? (
                 "Bezig met genereren..."
               ) : (
@@ -101,10 +122,12 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
                 </>
               )}
             </Button>
-            <p className="text-xs text-muted-foreground text-center mt-2">Dit kost 1 credit</p>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Dit kost 1 credit
+            </p>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

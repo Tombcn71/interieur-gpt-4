@@ -1,8 +1,8 @@
-import type { NextAuthOptions } from "next-auth"
-import { createUser, getUserByEmail } from "@/lib/db"
+import type { AuthOptions } from "next-auth";
+import { createUser, getUserByEmail } from "@/lib/db";
 
-// Define the Google provider directly without importing GoogleProvider
-export const authOptions: NextAuthOptions = {
+// Use AuthOptions instead of NextAuthOptions
+export const authOptions: AuthOptions = {
   providers: [
     {
       id: "google",
@@ -20,7 +20,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name,
           email: profile.email,
           image: profile.picture,
-        }
+        };
       },
     },
   ],
@@ -36,38 +36,55 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (account && user) {
         try {
-          const dbUser = await getUserByEmail(user.email!)
+          // Make sure email is not null or undefined
+          if (!user.email) {
+            console.error("User email is missing");
+            token.id = "temp-" + Math.random().toString(36).substring(2, 9);
+            token.credits = 1;
+            return token;
+          }
+
+          const dbUser = await getUserByEmail(user.email);
 
           if (!dbUser) {
             try {
-              const newUser = await createUser(user.email!, user.name || "Gebruiker", user.image)
-              token.id = newUser.id
-              token.credits = newUser.credits
+              // Ensure we handle null values properly
+              const userName = user.name || "Gebruiker";
+              // Convert null image to undefined to match function signature
+              const userImage = user.image || undefined;
+
+              const newUser = await createUser(user.email, userName, userImage);
+              token.id = String(newUser.id); // Ensure ID is a string
+              token.credits = newUser.credits;
+              console.log("Created new user with ID:", token.id);
             } catch (error) {
-              console.error("Error creating user in JWT callback:", error)
-              token.id = "temp-" + Math.random().toString(36).substring(2, 9)
-              token.credits = 1
+              console.error("Error creating user in JWT callback:", error);
+              token.id = "temp-" + Math.random().toString(36).substring(2, 9);
+              token.credits = 1;
             }
           } else {
-            token.id = dbUser.id
-            token.credits = dbUser.credits
+            token.id = String(dbUser.id); // Ensure ID is a string
+            token.credits = dbUser.credits;
+            console.log("Found existing user with ID:", token.id);
           }
         } catch (error) {
-          console.error("Error in JWT callback:", error)
-          token.id = "temp-" + Math.random().toString(36).substring(2, 9)
-          token.credits = 1
+          console.error("Error in JWT callback:", error);
+          token.id = "temp-" + Math.random().toString(36).substring(2, 9);
+          token.credits = 1;
         }
       }
 
-      return token
+      return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string
-        session.user.credits = (token.credits as number) || 1
+      if (token && session.user) {
+        // Add custom properties to the session.user object
+        session.user.id = String(token.id);
+        session.user.credits = (token.credits as number) || 1;
+        console.log("Session user ID:", session.user.id);
       }
-      return session
+      return session;
     },
   },
   debug: process.env.NODE_ENV === "development",
-}
+};
