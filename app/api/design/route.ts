@@ -38,6 +38,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if Replicate API token is configured
+    if (!process.env.REPLICATE_API_TOKEN) {
+      return NextResponse.json(
+        {
+          error:
+            "Replicate API is niet geconfigureerd. Controleer de REPLICATE_API_TOKEN omgevingsvariabele.",
+        },
+        { status: 500 }
+      );
+    }
+
     try {
       // Ensure user ID is a string and not null or undefined
       const userId = String(session.user.id);
@@ -62,25 +73,42 @@ export async function POST(req: NextRequest) {
       // Deduct credit
       await updateUserCredits(userId, -1);
 
-      // Generate design with Replicate
-      const output = await generateInteriorDesign(imageUrl, roomType, style);
+      try {
+        // Generate design with Replicate
+        const output = await generateInteriorDesign(imageUrl, roomType, style);
 
-      // Update design with result
-      if (output && typeof output === "string") {
-        await updateDesignResult(design.id, output, "completed");
+        // Update design with result
+        if (output && typeof output === "string") {
+          await updateDesignResult(design.id, output, "completed");
 
-        return NextResponse.json({
-          success: true,
-          design: {
-            ...design,
-            result_image_url: output,
-            status: "completed",
-          },
-        });
-      } else {
+          return NextResponse.json({
+            success: true,
+            design: {
+              ...design,
+              result_image_url: output,
+              status: "completed",
+            },
+          });
+        } else {
+          await updateDesignResult(design.id, "", "failed");
+          return NextResponse.json(
+            { error: "Generatie mislukt" },
+            { status: 500 }
+          );
+        }
+      } catch (replicateError: any) {
+        console.error("Replicate error:", replicateError);
+
+        // Update design status to failed
         await updateDesignResult(design.id, "", "failed");
+
+        // Return a more user-friendly error message
         return NextResponse.json(
-          { error: "Generatie mislukt" },
+          {
+            error:
+              "Er is een fout opgetreden bij het genereren van het ontwerp. Probeer het later opnieuw.",
+            details: replicateError.message || "Unknown Replicate error",
+          },
           { status: 500 }
         );
       }
