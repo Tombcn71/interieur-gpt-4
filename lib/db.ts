@@ -46,7 +46,6 @@ export async function getUserByEmail(email: string) {
   }
 }
 
-// Only updating the createUser function to handle undefined values properly
 export async function createUser(
   email: string,
   name: string,
@@ -105,8 +104,15 @@ export async function createDesign(
       throw new Error("User ID is required for creating a design");
     }
 
+    // Convert userId to a number if it's a string
+    const userIdNum = Number.parseInt(userId, 10);
+
+    if (isNaN(userIdNum)) {
+      throw new Error(`Invalid user ID: ${userId}`);
+    }
+
     console.log("Creating design with params:", {
-      userId,
+      userId: userIdNum,
       roomType,
       style,
       originalImageUrl,
@@ -114,7 +120,7 @@ export async function createDesign(
 
     const [design] = await sql`
       INSERT INTO designs (user_id, room_type, style, original_image_url, prompt)
-      VALUES (${userId}, ${roomType}, ${style}, ${originalImageUrl}, ${prompt})
+      VALUES (${userIdNum}, ${roomType}, ${style}, ${originalImageUrl}, ${prompt})
       RETURNING *
     `;
     return design;
@@ -153,9 +159,16 @@ export async function getUserDesigns(userId: string) {
       throw new Error("DATABASE_URL is not configured");
     }
 
+    // Convert userId to a number if it's a string
+    const userIdNum = Number.parseInt(userId, 10);
+
+    if (isNaN(userIdNum)) {
+      throw new Error(`Invalid user ID: ${userId}`);
+    }
+
     const designs = await sql`
       SELECT * FROM designs
-      WHERE user_id = ${userId}
+      WHERE user_id = ${userIdNum}
       ORDER BY created_at DESC
     `;
     return designs;
@@ -193,9 +206,16 @@ export async function createPayment(
       throw new Error("DATABASE_URL is not configured");
     }
 
+    // Convert userId to a number if it's a string
+    const userIdNum = Number.parseInt(userId, 10);
+
+    if (isNaN(userIdNum)) {
+      throw new Error(`Invalid user ID: ${userId}`);
+    }
+
     const [payment] = await sql`
       INSERT INTO payments (user_id, stripe_payment_id, amount, credits, status)
-      VALUES (${userId}, ${stripePaymentId}, ${amount}, ${credits}, ${status})
+      VALUES (${userIdNum}, ${stripePaymentId}, ${amount}, ${credits}, ${status})
       RETURNING *
     `;
     return payment;

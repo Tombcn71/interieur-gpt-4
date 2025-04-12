@@ -54,7 +54,9 @@ export const authOptions: AuthOptions = {
               const userImage = user.image || undefined;
 
               const newUser = await createUser(user.email, userName, userImage);
-              token.id = String(newUser.id); // Ensure ID is a string
+
+              // Ensure ID is a string and log it
+              token.id = String(newUser.id);
               token.credits = newUser.credits;
               console.log("Created new user with ID:", token.id);
             } catch (error) {
@@ -63,7 +65,8 @@ export const authOptions: AuthOptions = {
               token.credits = 1;
             }
           } else {
-            token.id = String(dbUser.id); // Ensure ID is a string
+            // Ensure ID is a string and log it
+            token.id = String(dbUser.id);
             token.credits = dbUser.credits;
             console.log("Found existing user with ID:", token.id);
           }
@@ -81,6 +84,8 @@ export const authOptions: AuthOptions = {
         // Add custom properties to the session.user object
         session.user.id = String(token.id);
         session.user.credits = (token.credits as number) || 1;
+
+        // Log the session user ID for debugging
         console.log("Session user ID:", session.user.id);
       }
       return session;

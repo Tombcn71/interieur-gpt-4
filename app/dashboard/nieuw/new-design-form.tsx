@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Zap } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface NewDesignFormProps {
   credits: number;
@@ -24,8 +25,9 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const { data: session, status } = useSession();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!imageUrl) {
       toast({
         title: "Fout",
@@ -35,52 +37,66 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
       return;
     }
 
+    // Check if user is authenticated
+    if (status !== "authenticated" || !session?.user?.id) {
+      toast({
+        title: "Fout",
+        description: "Je bent niet ingelogd. Log in om een ontwerp te maken.",
+        variant: "destructive",
+      });
+      router.push("/login");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
-    // Use a regular promise pattern instead of async/await
-    fetch("/api/design", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        roomType,
-        style,
-        imageUrl,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.success) {
-          throw new Error(data.error || "Er is een fout opgetreden");
-        }
-
-        toast({
-          title: "Succes!",
-          description: "Je ontwerp is succesvol gemaakt",
-        });
-
-        router.push("/dashboard");
-        router.refresh();
-      })
-      .catch((error) => {
-        console.error("Error creating design:", error);
-        setError(
-          error.message ||
-            "Er is een fout opgetreden bij het maken van je ontwerp"
-        );
-        toast({
-          title: "Fout",
-          description:
-            error.message ||
-            "Er is een fout opgetreden bij het maken van je ontwerp",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setIsSubmitting(false);
+    try {
+      const response = await fetch("/api/design", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          roomType,
+          style,
+          imageUrl,
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Er is een fout opgetreden");
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || "Er is een fout opgetreden");
+      }
+
+      toast({
+        title: "Succes!",
+        description: "Je ontwerp is succesvol gemaakt",
+      });
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error: any) {
+      console.error("Error creating design:", error);
+      setError(
+        error.message ||
+          "Er is een fout opgetreden bij het maken van je ontwerp"
+      );
+      toast({
+        title: "Fout",
+        description:
+          error.message ||
+          "Er is een fout opgetreden bij het maken van je ontwerp",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -111,7 +127,7 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
           <div className="pt-4">
             <Button
               onClick={handleSubmit}
-              disabled={!imageUrl || isSubmitting}
+              disabled={!imageUrl || isSubmitting || status !== "authenticated"}
               className="w-full rounded-full h-12">
               {isSubmitting ? (
                 "Bezig met genereren..."
