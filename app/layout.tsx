@@ -11,7 +11,6 @@ import { ClientSessionProvider } from "@/components/client-session-provider";
 import { SetupGuide } from "@/components/setup-guide";
 import { EnvChecker } from "@/components/env-checker";
 import { ReplicateCheck } from "@/components/replicate-check";
-import { Navbar } from "@/components/navbar"; // Import the regular Navbar
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,7 +33,6 @@ export default function RootLayout({
             defaultTheme="light"
             enableSystem
             disableTransitionOnChange>
-            <Navbar /> {/* Use regular Navbar instead of SimpleNavbar */}
             <Suspense fallback={<div className="p-4">Loading...</div>}>
               {children}
             </Suspense>
