@@ -3,8 +3,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 
+// Define allowed methods
+const ALLOWED_METHODS = ["POST"];
+
 export async function POST(req: NextRequest) {
-  console.log("Stripe checkout API route called");
+  console.log("Stripe checkout API route called with POST method");
 
   // Check if Stripe is properly configured
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -38,7 +41,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
     }
 
-    const body = await req.json();
+    // Log the request method and headers for debugging
+    console.log("Request method:", req.method);
+    console.log("Request headers:", Object.fromEntries(req.headers.entries()));
+
+    // Parse the request body
+    let body;
+    try {
+      body = await req.json();
+      console.log("Request body:", body);
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
+
     const { priceId, customerEmail } = body;
 
     if (!priceId) {
@@ -103,4 +122,13 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Add a GET handler to respond with a proper error for GET requests
+export async function GET() {
+  console.log("Stripe checkout API route called with GET method (not allowed)");
+  return NextResponse.json(
+    { error: "Method not allowed. Please use POST." },
+    { status: 405 }
+  );
 }

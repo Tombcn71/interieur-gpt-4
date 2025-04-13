@@ -37,13 +37,28 @@ export function StripeCheckoutButton({
         }),
       });
 
-      const data = await response.json();
+      console.log("Response status:", response.status);
+
+      // Try to parse the response as JSON
+      let data;
+      try {
+        data = await response.json();
+        console.log("Response data:", data);
+      } catch (error) {
+        console.error("Error parsing response:", error);
+        throw new Error("Invalid response from server");
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "Er is een fout opgetreden");
       }
 
+      if (!data.url) {
+        throw new Error("No checkout URL returned from server");
+      }
+
       // Redirect to Stripe Checkout
+      console.log("Redirecting to:", data.url);
       window.location.href = data.url;
     } catch (error: any) {
       console.error("Checkout error:", error);

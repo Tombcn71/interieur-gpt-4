@@ -13,16 +13,43 @@ export function StripePricingTable({ pricingTableId, publishableKey }: Props) {
   const { data: session } = useSession();
 
   useEffect(() => {
+    // Load the Stripe Pricing Table script
     const script = document.createElement("script");
     script.src = "https://js.stripe.com/v3/pricing-table.js";
     script.async = true;
 
+    // Log when the script is loaded
+    script.onload = () => {
+      console.log("Stripe Pricing Table script loaded");
+
+      // If we have a session, set the client reference ID and customer email
+      if (session?.user?.id) {
+        console.log("Setting client_reference_id:", session.user.id);
+        console.log("Setting customer_email:", session.user.email);
+
+        // Find all pricing table elements and set the attributes
+        const elements = document.querySelectorAll("stripe-pricing-table");
+        elements.forEach((element) => {
+          element.setAttribute("client-reference-id", session.user.id);
+          if (session.user.email) {
+            element.setAttribute("customer-email", session.user.email);
+          }
+        });
+      }
+    };
+
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      // Clean up the script when the component unmounts
+      const existingScript = document.querySelector(
+        `script[src="https://js.stripe.com/v3/pricing-table.js"]`
+      );
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
     };
-  }, []);
+  }, [session]);
 
   if (!pricingTableId || !publishableKey) {
     return (
@@ -48,8 +75,8 @@ export function StripePricingTable({ pricingTableId, publishableKey }: Props) {
       {React.createElement("stripe-pricing-table", {
         "pricing-table-id": pricingTableId,
         "publishable-key": publishableKey,
-        "client-reference-id": session?.user?.id,
-        "customer-email": session?.user?.email || "",
+        "client-reference-id": session.user.id,
+        "customer-email": session.user.email || "",
       })}
     </div>
   );
