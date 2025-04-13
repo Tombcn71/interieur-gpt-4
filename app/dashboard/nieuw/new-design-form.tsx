@@ -45,6 +45,21 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
     }
   }, [session, needsCredits]);
 
+  // Refresh session when component mounts
+  useEffect(() => {
+    if (status === "authenticated") {
+      const refreshSession = async () => {
+        try {
+          await update();
+          console.log("Session updated in NewDesignForm");
+        } catch (error) {
+          console.error("Error updating session in NewDesignForm:", error);
+        }
+      };
+      refreshSession();
+    }
+  }, [status, update]);
+
   const handleSubmit = async () => {
     if (!imageUrl) {
       toast({
@@ -106,10 +121,6 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
             "Je hebt niet genoeg credits om een ontwerp te maken."
           );
         }
-        throw new Error(data.error || "Er is een fout opgetreden");
-      }
-
-      if (!data.success) {
         throw new Error(data.error || "Er is een fout opgetreden");
       }
 
