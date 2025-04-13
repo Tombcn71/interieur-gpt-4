@@ -22,28 +22,28 @@ export async function generateInteriorDesign(
   console.log(`Using prompt: ${prompt}`);
 
   // Use ControlNet Hough model for more precise room transformations
-  // Note: Converting numeric values to strings as required by the API
+  // Using the correct types for each parameter based on the API requirements
   const output = await replicate.run(
     "jagilley/controlnet-hough:854e8727697a057c525cdb45ab037f64ecca770a1769cc52287c2e56472a247b",
     {
       input: {
         prompt: prompt,
         image: imageUrl,
-        num_samples: "1", // Convert to string
-        image_resolution: "768", // Convert to string
-        ddim_steps: "50", // Convert to string
-        scale: "9.0", // Convert to string
-        seed: Math.floor(Math.random() * 1000000).toString(), // Convert to string
-        eta: "0.0", // Convert to string
+        num_samples: "1", // String as per previous error
+        image_resolution: "768", // String as per previous error
+        ddim_steps: 50, // Integer as per new error
+        scale: 9.0, // Number as per new error
+        seed: Math.floor(Math.random() * 1000000), // Integer as per new error
+        eta: 0.0, // Number as per new error
         a_prompt:
           "best quality, high resolution, photo-realistic, ultra-detailed",
         n_prompt:
           "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, blurry, distorted",
-        detect_resolution: "768", // Convert to string
-        low_threshold: "100", // Convert to string
-        high_threshold: "200", // Convert to string
-        value_threshold: "0.1", // Convert to string
-        distance_threshold: "0.1", // Convert to string
+        detect_resolution: 768, // Integer as per new error
+        low_threshold: 100,
+        high_threshold: 200,
+        value_threshold: 0.1, // Number as per new error
+        distance_threshold: 0.1, // Number as per new error
       },
     }
   );

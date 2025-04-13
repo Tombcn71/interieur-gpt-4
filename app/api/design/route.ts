@@ -6,6 +6,7 @@ import {
   generateInteriorDesign,
   fallbackGenerateInteriorDesign,
 } from "@/lib/replicate";
+import { generateInteriorDesignWithReimagineXL } from "@/lib/replicate-alternative";
 
 export async function POST(req: NextRequest) {
   try {
@@ -60,32 +61,50 @@ export async function POST(req: NextRequest) {
     await updateUserCredits(userId, -1);
 
     try {
-      // Try to generate design with ControlNet
-      console.log(
-        "Attempting to generate design with ControlNet Hough model..."
-      );
+      // Try multiple models in sequence
       let outputImageUrl: string | null = null;
+      let modelUsed = "";
 
+      // Try Reimagine XL first (specialized for room redesign)
       try {
-        outputImageUrl = await generateInteriorDesign(
+        console.log("Attempting to generate design with Reimagine XL model...");
+        outputImageUrl = await generateInteriorDesignWithReimagineXL(
           imageUrl,
           roomType,
           style
         );
-      } catch (controlNetError) {
-        console.error(
-          "ControlNet model error, falling back to SDXL:",
-          controlNetError
-        );
-        // If ControlNet fails, try the fallback model
-        outputImageUrl = await fallbackGenerateInteriorDesign(
-          imageUrl,
-          roomType,
-          style
-        );
+        modelUsed = "Reimagine XL";
+      } catch (reimagineError) {
+        console.error("Reimagine XL model error:", reimagineError);
+
+        // If Reimagine XL fails, try ControlNet
+        try {
+          console.log(
+            "Attempting to generate design with ControlNet Hough model..."
+          );
+          outputImageUrl = await generateInteriorDesign(
+            imageUrl,
+            roomType,
+            style
+          );
+          modelUsed = "ControlNet Hough";
+        } catch (controlNetError) {
+          console.error(
+            "ControlNet model error, falling back to SDXL:",
+            controlNetError
+          );
+
+          // If ControlNet fails, try the fallback SDXL model
+          outputImageUrl = await fallbackGenerateInteriorDesign(
+            imageUrl,
+            roomType,
+            style
+          );
+          modelUsed = "SDXL (fallback)";
+        }
       }
 
-      console.log("Generated image URL:", outputImageUrl);
+      console.log(`Generated image URL using ${modelUsed}:`, outputImageUrl);
 
       // Validate the output URL
       if (!outputImageUrl || typeof outputImageUrl !== "string") {
@@ -109,6 +128,7 @@ export async function POST(req: NextRequest) {
           ...design,
           result_image_url: outputImageUrl,
           status: "completed",
+          model_used: modelUsed,
         },
       });
     } catch (replicateError: any) {
