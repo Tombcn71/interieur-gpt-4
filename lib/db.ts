@@ -72,7 +72,64 @@ export async function createUser(
   }
 }
 
+// Update the updateUserCredits function to prevent negative credits
 export async function updateUserCredits(userId: string, credits: number) {
+  try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is not configured");
+    }
+
+    // If we're deducting credits, make sure we don't go below zero
+    if (credits < 0) {
+      // First get the current credits
+      const user = await getUserById(userId);
+      if (!user) {
+        throw new Error(`User not found: ${userId}`);
+      }
+
+      // If the user doesn't have enough credits, don't update
+      if (user.credits + credits < 0) {
+        console.error(
+          `Attempted to reduce credits below zero for user ${userId}. Current: ${user.credits}, Change: ${credits}`
+        );
+        // Return the current user without changes
+        return user;
+      }
+    }
+
+    // Proceed with the update, ensuring we never go below zero
+    const [user] = await sql`
+      UPDATE users
+      SET credits = GREATEST(0, credits + ${credits})
+      WHERE id = ${userId}
+      RETURNING *
+    `;
+    return user;
+  } catch (error) {
+    console.error("Error updating user credits:", error);
+    return null;
+  }
+}
+
+// Add a function to get the current user credits
+export async function getUserCredits(userId: string): Promise<number> {
+  try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is not configured");
+    }
+
+    const [result] = await sql`
+      SELECT credits FROM users WHERE id = ${userId}
+    `;
+    return result ? result.credits : 0;
+  } catch (error) {
+    console.error("Error getting user credits:", error);
+    return 0;
+  }
+}
+
+// Add a function to reset credits to zero if they're negative
+export async function fixNegativeCredits(userId: string) {
   try {
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL is not configured");
@@ -80,13 +137,13 @@ export async function updateUserCredits(userId: string, credits: number) {
 
     const [user] = await sql`
       UPDATE users
-      SET credits = credits + ${credits}
-      WHERE id = ${userId}
+      SET credits = GREATEST(0, credits)
+      WHERE id = ${userId} AND credits < 0
       RETURNING *
     `;
     return user;
   } catch (error) {
-    console.error("Error updating user credits:", error);
+    console.error("Error fixing negative credits:", error);
     return null;
   }
 }

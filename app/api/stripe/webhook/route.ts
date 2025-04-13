@@ -5,7 +5,7 @@ import {
   getPriceToCreditsMap,
   AMOUNT_CREDITS_MAPPING,
 } from "@/lib/stripe";
-import { createPayment, updateUserCredits } from "@/lib/db";
+import { createPayment, updateUserCredits, getUserById } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   console.log("Stripe webhook called");
@@ -98,6 +98,12 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // Get current user credits before updating
+      const userBefore = await getUserById(userId);
+      console.log(
+        `User ${userId} had ${userBefore?.credits || 0} credits before update`
+      );
+
       console.log(`Adding ${credits} credits to user ${userId}`);
 
       // Create payment record
@@ -109,8 +115,18 @@ export async function POST(req: NextRequest) {
         "completed"
       );
 
-      // Add credits to user
-      await updateUserCredits(userId, credits);
+      // Add credits to user - ensure it's a positive number
+      if (credits > 0) {
+        await updateUserCredits(userId, Math.abs(credits));
+      } else {
+        console.error(`Invalid credit amount: ${credits}`);
+      }
+
+      // Get updated user credits
+      const userAfter = await getUserById(userId);
+      console.log(
+        `User ${userId} now has ${userAfter?.credits || 0} credits after update`
+      );
 
       console.log("Payment processed successfully");
     } catch (error) {

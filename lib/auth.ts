@@ -27,13 +27,15 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/login",
     error: "/login",
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
+      // Initial sign in
       if (account && user) {
         try {
           // Make sure email is not null or undefined
@@ -77,16 +79,39 @@ export const authOptions: AuthOptions = {
         }
       }
 
+      // Update credits on session refresh
+      if (trigger === "update" && token.id) {
+        try {
+          const dbUser = await getUserByEmail(token.email as string);
+          if (dbUser) {
+            token.credits = dbUser.credits;
+            console.log(
+              "Updated credits for user:",
+              token.id,
+              "Credits:",
+              token.credits
+            );
+          }
+        } catch (error) {
+          console.error("Error updating credits in JWT callback:", error);
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         // Add custom properties to the session.user object
         session.user.id = String(token.id);
-        session.user.credits = (token.credits as number) || 1;
+        session.user.credits = (token.credits as number) || 0;
 
         // Log the session user ID for debugging
-        console.log("Session user ID:", session.user.id);
+        console.log(
+          "Session user ID:",
+          session.user.id,
+          "Credits:",
+          session.user.credits
+        );
       }
       return session;
     },

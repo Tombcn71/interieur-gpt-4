@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,10 +8,10 @@ import { RoomTypeSelector } from "@/components/room-type-selector";
 import { StyleSelector } from "@/components/style-selector";
 import { ImageUpload } from "@/components/image-upload";
 import { useToast } from "@/hooks/use-toast";
-import { Zap } from "lucide-react";
+import { Zap, AlertCircle, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 interface NewDesignFormProps {
   credits: number;
@@ -23,9 +23,18 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsCredits, setNeedsCredits] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  // Reset error state when credits change
+  useEffect(() => {
+    if (credits > 0 && needsCredits) {
+      setNeedsCredits(false);
+      setError(null);
+    }
+  }, [credits, needsCredits]);
 
   const handleSubmit = async () => {
     if (!imageUrl) {
@@ -48,8 +57,16 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
       return;
     }
 
+    // Check credits client-side first
+    if (credits <= 0) {
+      setError("Je hebt niet genoeg credits om een ontwerp te maken.");
+      setNeedsCredits(true);
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
+    setNeedsCredits(false);
 
     try {
       // Show a toast to indicate the process has started
@@ -73,6 +90,13 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if the error is due to insufficient credits
+        if (data.needsCredits) {
+          setNeedsCredits(true);
+          throw new Error(
+            "Je hebt niet genoeg credits om een ontwerp te maken."
+          );
+        }
         throw new Error(data.error || "Er is een fout opgetreden");
       }
 
@@ -117,7 +141,12 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
         <div className="space-y-8">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Ontwerp details</h2>
-            <div className="bg-blue-50 text-blue-600 rounded-full px-4 py-1">
+            <div
+              className={`rounded-full px-4 py-1 ${
+                credits < 1
+                  ? "bg-red-50 text-red-600"
+                  : "bg-blue-50 text-blue-600"
+              }`}>
               <span className="text-sm font-medium">Credits: {credits}</span>
             </div>
           </div>
@@ -126,7 +155,31 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Fout</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {error}
+                {needsCredits && (
+                  <div className="mt-2">
+                    <Button variant="outline" asChild size="sm">
+                      <Link href="/dashboard/credits">Koop Credits</Link>
+                    </Button>
+                  </div>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {credits <= 0 && !error && (
+            <Alert variant="warning">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Niet genoeg credits</AlertTitle>
+              <AlertDescription>
+                Je hebt niet genoeg credits om een ontwerp te maken.
+                <div className="mt-2">
+                  <Button variant="outline" asChild size="sm">
+                    <Link href="/dashboard/credits">Koop Credits</Link>
+                  </Button>
+                </div>
+              </AlertDescription>
             </Alert>
           )}
 
@@ -139,7 +192,12 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
           <div className="pt-4">
             <Button
               onClick={handleSubmit}
-              disabled={!imageUrl || isSubmitting || status !== "authenticated"}
+              disabled={
+                !imageUrl ||
+                isSubmitting ||
+                status !== "authenticated" ||
+                credits <= 0
+              }
               className="w-full rounded-full h-12">
               {isSubmitting ? (
                 <div className="flex items-center">

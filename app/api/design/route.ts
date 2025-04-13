@@ -1,7 +1,12 @@
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { createDesign, updateDesignResult, updateUserCredits } from "@/lib/db";
+import {
+  createDesign,
+  updateDesignResult,
+  updateUserCredits,
+  getUserById,
+} from "@/lib/db";
 // Import the simplified implementation
 import { generateInteriorDesign } from "@/lib/simple-replicate";
 
@@ -30,17 +35,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if user has credits
-    if (session.user.credits < 1) {
+    // Ensure user ID is a string
+    const userId = String(session.user.id);
+
+    // Get the latest user data from the database to check credits
+    const user = await getUserById(userId);
+
+    if (!user) {
       return NextResponse.json(
-        { error: "Niet genoeg credits" },
-        { status: 400 }
+        { error: "Gebruiker niet gevonden" },
+        { status: 404 }
       );
     }
 
-    // Ensure user ID is a string
-    const userId = String(session.user.id);
-    console.log("Creating design with user ID:", userId);
+    // Check if user has credits - use the database value, not the session
+    if (user.credits < 1) {
+      return NextResponse.json(
+        {
+          error: "Niet genoeg credits",
+          credits: user.credits,
+          needsCredits: true,
+        },
+        { status: 400 }
+      );
+    }
 
     const prompt = `Een ${roomType} met een ${style} stijl.`;
 
@@ -54,7 +72,7 @@ export async function POST(req: NextRequest) {
     );
     console.log("Design created:", design);
 
-    // Deduct credit
+    // Deduct credit - ensure it doesn't go below zero (defensive programming)
     await updateUserCredits(userId, -1);
 
     // IMPORTANT: Instead of doing background processing, we'll do it synchronously
