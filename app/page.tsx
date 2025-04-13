@@ -14,28 +14,27 @@ export default function Home() {
       <HomeHeader />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="py-20 md:py-28">
-          <div className="container">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
+        {/* Hero Section - Improved for mobile */}
+        <section className="py-12 md:py-20 lg:py-28">
+          <div className="container px-4 sm:px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+              <div className="space-y-6 text-center lg:text-left">
                 <div className="inline-block bg-gray-100 rounded-full px-4 py-2 text-sm">
                   Gebruikt door meer dan{" "}
-                  <span className="text-blue-500 font-medium">1000 mensen</span>{" "}
-                  om huizen te herontwerpen
+                  <span className="text-blue-500 font-medium">1000 mensen</span>
                 </div>
 
-                <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight">
                   Jouw persoonlijke <span className="text-blue-500">AI</span>{" "}
-                  <br />
+                  <br className="hidden sm:inline" />
                   interieurontwerper
                 </h1>
 
-                <div className="pt-4">
+                <div className="pt-2 md:pt-4">
                   <Button
                     size="lg"
                     asChild
-                    className="rounded-full h-14 px-8 text-lg">
+                    className="rounded-full h-12 md:h-14 px-6 md:px-8 text-base md:text-lg">
                     <Link href="/login">
                       Herontwerp je kamer
                       <svg
@@ -55,7 +54,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white mx-auto max-w-md lg:max-w-none w-full">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
                     src="/images/hero.png"
@@ -73,11 +72,11 @@ export default function Home() {
 
         {/* How it works section */}
         <section className="py-16 bg-gray-50">
-          <div className="container">
+          <div className="container px-4 sm:px-6">
             <h2 className="text-3xl font-bold text-center mb-12">
               Hoe het werkt
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 font-bold text-xl">
                   1
@@ -98,7 +97,7 @@ export default function Home() {
                   je nieuwe ruimte.
                 </p>
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sm:col-span-2 md:col-span-1">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 font-bold text-xl">
                   3
                 </div>
@@ -120,18 +119,18 @@ export default function Home() {
 
         {/* Media Logos */}
         <section className="py-16 bg-gray-50">
-          <div className="container">
+          <div className="container px-4 sm:px-6">
             <MediaLogos />
           </div>
         </section>
 
         {/* CTA Section */}
         <section className="py-16 bg-blue-500 text-white">
-          <div className="container text-center">
-            <h2 className="text-3xl font-bold mb-4">
+          <div className="container px-4 sm:px-6 text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
               Klaar om je ruimte te transformeren?
             </h2>
-            <p className="text-xl mb-8 max-w-[600px] mx-auto">
+            <p className="text-lg sm:text-xl mb-8 max-w-[600px] mx-auto">
               Begin vandaag nog met het herontwerpen van je interieur met onze
               AI-technologie.
             </p>
@@ -139,7 +138,7 @@ export default function Home() {
               size="lg"
               variant="secondary"
               asChild
-              className="rounded-full h-14 px-8 text-lg">
+              className="rounded-full h-12 md:h-14 px-6 md:px-8 text-base md:text-lg">
               <Link href="/login">Begin nu</Link>
             </Button>
           </div>
@@ -148,13 +147,13 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t py-8">
-        <div className="container flex flex-col md:flex-row justify-between items-center">
+        <div className="container px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
             <p className="text-sm text-muted-foreground">
               © 2023 InterieurGPT. Alle rechten voorbehouden.
             </p>
           </div>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-6 justify-center">
             <Link
               href="/privacy"
               className="text-sm text-muted-foreground hover:text-foreground">

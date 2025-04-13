@@ -40,7 +40,7 @@ export function HomeHeader() {
   if (isLoading) {
     return (
       <header className="border-b">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container px-4 sm:px-6 flex h-16 items-center justify-between">
           <Logo />
           {/* Show nothing while loading */}
         </div>
@@ -50,7 +50,7 @@ export function HomeHeader() {
 
   return (
     <header className="border-b">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container px-4 sm:px-6 flex h-16 items-center justify-between">
         <Logo />
         {!isLoggedIn ? (
           <Button asChild className="rounded-full">
