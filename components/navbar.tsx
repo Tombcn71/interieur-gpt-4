@@ -213,6 +213,14 @@ export function Navbar() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="hidden md:flex ml-2">
+                <LogOut className="mr-2 h-4 w-4" />
+                Uitloggen
+              </Button>
             </>
           ) : (
             <Button onClick={handleSignIn} className="rounded-full">
@@ -254,6 +262,12 @@ export function Navbar() {
                   <CreditCard className="mr-2 h-4 w-4" />
                   Credits: {session.user.credits}
                 </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm font-medium transition-colors hover:text-primary flex items-center text-left w-full">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Uitloggen
+                </button>
               </>
             )}
           </nav>
