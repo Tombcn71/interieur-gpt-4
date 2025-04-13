@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { createDesign, updateDesignResult, updateUserCredits } from "@/lib/db";
-// Import the alternative implementation
-import { generateInteriorDesign } from "@/lib/reliable-replicate-alt";
+// Import the simplified implementation
+import { generateInteriorDesign } from "@/lib/simple-replicate";
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
     void (async () => {
       try {
         console.log("Starting background processing for design:", design.id);
+
+        // Generate the design
         const outputImageUrl = await generateInteriorDesign(
           imageUrl,
           roomType,
@@ -70,15 +72,9 @@ export async function POST(req: NextRequest) {
 
         console.log("Generated image URL:", outputImageUrl);
 
-        // Validate the output URL
-        if (!outputImageUrl || typeof outputImageUrl !== "string") {
-          console.error("Invalid output from Replicate:", outputImageUrl);
-          await updateDesignResult(design.id, "", "failed");
-        } else {
-          // Update design with result
-          await updateDesignResult(design.id, outputImageUrl, "completed");
-          console.log("Design updated with result:", design.id);
-        }
+        // Update design with result
+        await updateDesignResult(design.id, outputImageUrl, "completed");
+        console.log("Design updated with result:", design.id);
       } catch (error) {
         console.error("Background processing error:", error);
         await updateDesignResult(design.id, "", "failed");
