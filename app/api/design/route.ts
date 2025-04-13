@@ -64,25 +64,36 @@ export async function POST(req: NextRequest) {
         style
       );
 
-      // Update design with result
-      if (outputImageUrl) {
-        await updateDesignResult(design.id, outputImageUrl, "completed");
+      console.log("Generated image URL:", outputImageUrl);
 
-        return NextResponse.json({
-          success: true,
-          design: {
-            ...design,
-            result_image_url: outputImageUrl,
-            status: "completed",
-          },
-        });
-      } else {
+      // Validate the output URL
+      if (
+        !outputImageUrl ||
+        typeof outputImageUrl !== "string" ||
+        !outputImageUrl.startsWith("http")
+      ) {
+        console.error("Invalid output URL from Replicate:", outputImageUrl);
         await updateDesignResult(design.id, "", "failed");
         return NextResponse.json(
-          { error: "Generatie mislukt" },
+          {
+            error: "Ongeldige afbeelding URL ontvangen van de AI service",
+            details: "The AI service returned an invalid URL format",
+          },
           { status: 500 }
         );
       }
+
+      // Update design with result
+      await updateDesignResult(design.id, outputImageUrl, "completed");
+
+      return NextResponse.json({
+        success: true,
+        design: {
+          ...design,
+          result_image_url: outputImageUrl,
+          status: "completed",
+        },
+      });
     } catch (replicateError: any) {
       console.error("Replicate error:", replicateError);
 
