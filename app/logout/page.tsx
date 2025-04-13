@@ -20,19 +20,32 @@ export default function LogoutPage() {
         document.cookie.split(";").forEach((cookie) => {
           const [name] = cookie.trim().split("=");
           document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;`;
+          // Also try with domain
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=.interieurgpt.nl`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=interieurgpt.nl`;
         });
 
         // Call our API route to clear server-side cookies
         setStatus("Clearing server-side session...");
-        await fetch("/api/logout", { method: "POST" });
+        await fetch("/api/logout", {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+          },
+        });
 
         // Finally, redirect to home page with a full page reload
         setStatus("Redirecting...");
-        window.location.href = "https://www.interieurgpt.nl";
+
+        // Use a timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        window.location.href = `/?t=${timestamp}`;
       } catch (error) {
         console.error("Error during logout:", error);
         // Force redirect as a last resort
-        window.location.href = "https://www.interieurgpt.nl";
+        window.location.href = "/";
       }
     };
 
