@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PromoBanner } from "@/components/promo-banner";
-import { BeforeAfterShowcase } from "@/components/before-after-showcase";
 import { MediaLogos } from "@/components/media-logos";
 import { HomeHeader } from "@/components/home-header";
 import { ReviewsSection } from "@/components/reviews-section";
@@ -56,7 +55,18 @@ export default function Home() {
                 </div>
               </div>
 
-              <BeforeAfterShowcase />
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src="/images/hero-interior.jpg"
+                    alt="Modern interior design"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-4 py-1 font-medium text-sm">
+                    AI-gegenereerd interieur
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
