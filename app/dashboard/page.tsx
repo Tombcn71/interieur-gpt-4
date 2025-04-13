@@ -3,7 +3,7 @@ import { DesignCard } from "@/components/design-card";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { getUserDesigns, getUserById, fixNegativeCredits } from "@/lib/db";
+import { getUserDesigns, getUserById } from "@/lib/db";
 import { AuthCheck } from "@/components/auth-check";
 import { Navbar } from "@/components/navbar";
 import { Zap, ImageIcon, CreditCard } from "lucide-react";
@@ -18,21 +18,9 @@ export default async function DashboardPage() {
 
   const userId = String(session.user.id);
 
-  // Automatically fix negative credits server-side
-  let credits = session.user.credits;
-  if (credits < 0) {
-    console.log(
-      `Automatically fixing negative credits (${credits}) for user ${userId}`
-    );
-    const user = await getUserById(userId);
-    if (user?.credits < 0) {
-      const updatedUser = await fixNegativeCredits(userId);
-      credits = updatedUser?.credits || 0;
-      console.log(`Credits fixed to ${credits} for user ${userId}`);
-    } else {
-      credits = user?.credits || 0;
-    }
-  }
+  // Get the latest user data from the database
+  const user = await getUserById(userId);
+  const credits = user?.credits || session.user.credits || 0;
 
   const designs: Design[] = await getUserDesigns(session.user.id);
 
@@ -62,7 +50,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Quick actions section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
               <h2 className="text-xl font-semibold mb-3 text-blue-700">
                 Nieuw ontwerp maken
@@ -102,7 +90,7 @@ export default async function DashboardPage() {
               <p className="text-muted-foreground mb-4">
                 Je hebt momenteel {credits} credit{credits !== 1 ? "s" : ""}.
               </p>
-              <Button asChild variant="outline" className="w-full">
+              <Button asChild className="w-full">
                 <Link href="/dashboard/credits">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Koop credits

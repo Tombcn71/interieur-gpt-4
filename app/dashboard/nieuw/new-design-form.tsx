@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { RoomTypeSelector } from "@/components/room-type-selector";
 import { StyleSelector } from "@/components/style-selector";
 import { ImageUpload } from "@/components/image-upload";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, AlertCircle } from "lucide-react";
+import { Zap, AlertCircle, CreditCard } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -22,43 +22,12 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
   const [style, setStyle] = useState("modern");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [needsCredits, setNeedsCredits] = useState(false);
-  const [credits, setCredits] = useState(initialCredits);
   const { toast } = useToast();
   const router = useRouter();
-  const { data: session, status, update } = useSession();
+  const { data: session, update } = useSession();
 
-  // Use a normalized credits value (never negative)
-  const normalizedCredits = credits < 0 ? 0 : credits;
-
-  // Update credits when session changes
-  useEffect(() => {
-    if (session?.user?.credits !== undefined) {
-      setCredits(session.user.credits);
-
-      // Reset error state if we now have credits
-      if (session.user.credits > 0 && needsCredits) {
-        setNeedsCredits(false);
-        setError(null);
-      }
-    }
-  }, [session, needsCredits]);
-
-  // Refresh session when component mounts
-  useEffect(() => {
-    if (status === "authenticated") {
-      const refreshSession = async () => {
-        try {
-          await update();
-          console.log("Session updated in NewDesignForm");
-        } catch (error) {
-          console.error("Error updating session in NewDesignForm:", error);
-        }
-      };
-      refreshSession();
-    }
-  }, [status, update]);
+  // Use the credits from session if available, otherwise use the initial credits
+  const credits = session?.user?.credits ?? initialCredits;
 
   const handleSubmit = async () => {
     if (!imageUrl) {
@@ -70,30 +39,9 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
       return;
     }
 
-    // Check if user is authenticated
-    if (status !== "authenticated" || !session?.user?.id) {
-      toast({
-        title: "Fout",
-        description: "Je bent niet ingelogd. Log in om een ontwerp te maken.",
-        variant: "destructive",
-      });
-      router.push("/login");
-      return;
-    }
-
-    // Check credits client-side first
-    if (normalizedCredits <= 0) {
-      setError("Je hebt niet genoeg credits om een ontwerp te maken.");
-      setNeedsCredits(true);
-      return;
-    }
-
     setIsSubmitting(true);
-    setError(null);
-    setNeedsCredits(false);
 
     try {
-      // Show a toast to indicate the process has started
       toast({
         title: "Bezig met genereren",
         description: "Dit kan ongeveer 20-30 seconden duren.",
@@ -114,18 +62,8 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        // Check if the error is due to insufficient credits
-        if (data.needsCredits) {
-          setNeedsCredits(true);
-          throw new Error(
-            "Je hebt niet genoeg credits om een ontwerp te maken."
-          );
-        }
         throw new Error(data.error || "Er is een fout opgetreden");
       }
-
-      // Update local credits state
-      setCredits((prev) => Math.max(0, prev - 1));
 
       // Update the session to reflect the new credit count
       await update();
@@ -141,14 +79,8 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
       } else {
         router.push("/dashboard");
       }
-
-      router.refresh();
     } catch (error: any) {
       console.error("Error creating design:", error);
-      setError(
-        error.message ||
-          "Er is een fout opgetreden bij het maken van je ontwerp"
-      );
       toast({
         title: "Fout",
         description:
@@ -161,6 +93,9 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
     }
   };
 
+  // Check if user has enough credits
+  const hasEnoughCredits = credits > 0;
+
   return (
     <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
       <CardContent className="p-6">
@@ -169,42 +104,26 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
             <h2 className="text-xl font-semibold">Ontwerp details</h2>
             <div
               className={`rounded-full px-4 py-1 ${
-                normalizedCredits < 1
-                  ? "bg-red-50 text-red-600"
-                  : "bg-blue-50 text-blue-600"
+                hasEnoughCredits
+                  ? "bg-blue-50 text-blue-600"
+                  : "bg-red-50 text-red-600"
               }`}>
-              <span className="text-sm font-medium">
-                Credits: {normalizedCredits}
-              </span>
+              <span className="text-sm font-medium">Credits: {credits}</span>
             </div>
           </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Fout</AlertTitle>
-              <AlertDescription>
-                {error}
-                {needsCredits && (
-                  <div className="mt-2">
-                    <Button variant="outline" asChild size="sm">
-                      <Link href="/dashboard/credits">Koop Credits</Link>
-                    </Button>
-                  </div>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {normalizedCredits <= 0 && !error && (
+          {!hasEnoughCredits && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Niet genoeg credits</AlertTitle>
               <AlertDescription>
                 Je hebt niet genoeg credits om een ontwerp te maken.
                 <div className="mt-2">
-                  <Button variant="outline" asChild size="sm">
-                    <Link href="/dashboard/credits">Koop Credits</Link>
+                  <Button asChild>
+                    <Link href="/dashboard/credits">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Koop credits
+                    </Link>
                   </Button>
                 </div>
               </AlertDescription>
@@ -220,12 +139,7 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
           <div className="pt-4">
             <Button
               onClick={handleSubmit}
-              disabled={
-                !imageUrl ||
-                isSubmitting ||
-                status !== "authenticated" ||
-                normalizedCredits <= 0
-              }
+              disabled={!imageUrl || isSubmitting || !hasEnoughCredits}
               className="w-full rounded-full h-12">
               {isSubmitting ? (
                 <div className="flex items-center">
