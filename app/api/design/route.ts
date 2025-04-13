@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { createDesign, updateDesignResult, updateUserCredits } from "@/lib/db";
-import { generateInteriorDesign } from "@/lib/reliable-replicate";
+// Import the alternative implementation
+import { generateInteriorDesign } from "@/lib/reliable-replicate-alt";
 
 export async function POST(req: NextRequest) {
   try {

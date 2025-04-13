@@ -7,9 +7,8 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-// Define model ID types to match Replicate's expected format
-type ModelIdWithVersion = `${string}/${string}:${string}`;
-type ModelId = `${string}/${string}`;
+// Define the type that Replicate expects for model IDs
+type ReplicateModelId = `${string}/${string}` | `${string}/${string}:${string}`;
 
 /**
  * Generates an interior design using the most reliable models with fallback
@@ -25,15 +24,14 @@ export async function generateInteriorDesign(
   console.log(`Generating interior design: ${roomType}, ${style}`);
   console.log(`Using image URL: ${imageUrl}`);
 
-  // Try models in order of reliability
+  // Try models in order of reliability - using the latest public versions
   const models = [
     {
-      name: "Stable Diffusion v1.5",
-      // Split the model ID and version to match the expected format
-      id: "stability-ai/stable-diffusion" as ModelId,
-      version:
-        "ac732df83cea7a18b7a7674901a95dd590d5d1e308e5dee379ecf15eb6a14da9",
-      params: {
+      name: "Stable Diffusion 2.1",
+      // Use the full model identifier with type assertion
+      modelId:
+        "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf" as ReplicateModelId,
+      input: {
         prompt: prompt,
         image: imageUrl,
         num_outputs: 1,
@@ -45,16 +43,29 @@ export async function generateInteriorDesign(
     },
     {
       name: "SDXL",
-      id: "stability-ai/sdxl" as ModelId,
-      version:
-        "c221b2b8ef527988fb59bf24a8b97c4561f1c671f73bd389f866bfb27c061316",
-      params: {
+      modelId:
+        "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b" as ReplicateModelId,
+      input: {
         prompt: prompt,
         image: imageUrl,
         num_outputs: 1,
         guidance_scale: 7.5,
         num_inference_steps: 25,
         strength: 0.7,
+        negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
+      },
+    },
+    {
+      name: "Stable Diffusion 1.5",
+      modelId:
+        "runwayml/stable-diffusion-v1-5:a4a8bcfd6a211c88392c5427ea6c334c9c022b984f7c55e98b1b62db0a7e0b85" as ReplicateModelId,
+      input: {
+        prompt: prompt,
+        image: imageUrl,
+        num_outputs: 1,
+        guidance_scale: 7.5,
+        num_inference_steps: 30,
+        strength: 0.8,
         negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
       },
     },
@@ -67,22 +78,14 @@ export async function generateInteriorDesign(
     try {
       console.log(`Attempting to generate with ${model.name}...`);
 
-      // Use the predictions.create method instead of run
-      const prediction = await replicate.predictions.create({
-        version: model.version,
-        input: model.params,
-      });
+      // Use the direct run method with the full model ID
+      const output = await replicate.run(model.modelId, { input: model.input });
 
-      // Wait for the prediction to complete
-      const output = await replicate.wait(prediction);
+      console.log(`${model.name} output:`, safeStringify(output));
 
       // Handle different output types
-      if (
-        output.output &&
-        Array.isArray(output.output) &&
-        output.output.length > 0
-      ) {
-        const result = output.output[0];
+      if (Array.isArray(output) && output.length > 0) {
+        const result = output[0];
         console.log(`Successfully generated with ${model.name}`);
 
         // Handle if result is a ReadableStream
@@ -93,9 +96,9 @@ export async function generateInteriorDesign(
         }
 
         return result;
-      } else if (output.output && typeof output.output === "string") {
+      } else if (typeof output === "string") {
         console.log(`Successfully generated with ${model.name}`);
-        return output.output;
+        return output;
       } else {
         console.log(
           `Unexpected output format from ${model.name}:`,
