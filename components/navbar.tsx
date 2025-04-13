@@ -31,14 +31,22 @@ export function Navbar() {
     if (success === "true" && status === "authenticated") {
       // Refresh the session to get updated credits
       const refreshSession = async () => {
-        await fetch("/api/auth/session?update=true");
-        // Force a session update
-        const event = new Event("visibilitychange");
-        document.dispatchEvent(event);
-        // Additional fallback - hard refresh after a delay
-        setTimeout(() => {
+        try {
+          // Get the latest user data from the database
+          const response = await fetch("/api/auth/refresh-session");
+          const data = await response.json();
+
+          if (data.success && data.user) {
+            // Force a hard refresh to update everything
+            window.location.href = "/dashboard";
+          } else {
+            // Fallback to router refresh
+            router.refresh();
+          }
+        } catch (error) {
+          console.error("Failed to refresh session:", error);
           router.refresh();
-        }, 500);
+        }
       };
 
       refreshSession();
@@ -50,7 +58,7 @@ export function Navbar() {
         duration: 5000,
       });
     }
-  }, [searchParams, status, router]);
+  }, [searchParams, status, router, toast]);
 
   // Don't show the navbar on the homepage
   if (pathname === "/") {

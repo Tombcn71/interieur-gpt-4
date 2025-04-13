@@ -19,6 +19,14 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Log the credits for debugging
+    console.log(
+      `Refresh session API: User ${userId} has ${user.credits} credits in database`
+    );
+    console.log(
+      `Refresh session API: User ${userId} has ${session.user.credits} credits in session`
+    );
+
     // Return the latest user data
     return NextResponse.json({
       success: true,

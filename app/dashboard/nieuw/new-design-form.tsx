@@ -34,11 +34,17 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
 
   // Reset error state when credits change
   useEffect(() => {
+    // If we have credits, reset the error state
     if (normalizedCredits > 0 && needsCredits) {
       setNeedsCredits(false);
       setError(null);
     }
-  }, [normalizedCredits, needsCredits]);
+
+    // Get the latest credits from the session if available
+    if (session?.user?.credits !== undefined) {
+      setCredits(session.user.credits);
+    }
+  }, [normalizedCredits, needsCredits, session?.user?.credits]);
 
   const handleSubmit = async () => {
     if (!imageUrl) {
