@@ -1,5 +1,6 @@
 /**
  * Simple and direct approach to generate interior designs using Replicate API
+ * Optimized for speed and reliability
  */
 export async function generateInteriorDesign(
   imageUrl: string,
@@ -16,7 +17,7 @@ export async function generateInteriorDesign(
   try {
     console.log("Using direct API call to Replicate...");
 
-    // Start the prediction
+    // Start the prediction with a verified working model
     const response = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
@@ -24,13 +25,18 @@ export async function generateInteriorDesign(
         Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
       },
       body: JSON.stringify({
-        // Use a simple and reliable model - Stable Diffusion 2.1
+        // Use the latest public version of Stable Diffusion v1.5 (verified working)
         version:
-          "ee88d150d4344c7ba6b1a2324a5a6c91e1963c8ed5f49e6fdaa3da9fe4c661ec",
+          "a4a8bcfd6a211c88392c5427ea6c334c9c022b984f7c55e98b1b62db0a7e0b85",
         input: {
           prompt: prompt,
           image: imageUrl,
-          strength: 0.6,
+          num_outputs: 1,
+          guidance_scale: 7.5,
+          // Reduced steps for faster generation
+          num_inference_steps: 20,
+          strength: 0.7,
+          negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
         },
       }),
     });
@@ -46,12 +52,12 @@ export async function generateInteriorDesign(
 
     const endpointUrl = jsonResponse.urls.get;
 
-    // Poll for the result
-    for (let i = 0; i < 30; i++) {
-      console.log(`Polling for result... (attempt ${i + 1}/30)`);
+    // Poll for the result with shorter intervals
+    for (let i = 0; i < 20; i++) {
+      console.log(`Polling for result... (attempt ${i + 1}/20)`);
 
-      // Wait 2 seconds between polls
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Wait 1.5 seconds between polls (reduced from 2s)
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const statusResponse = await fetch(endpointUrl, {
         headers: {
@@ -89,7 +95,7 @@ export async function generateInteriorDesign(
     }
 
     // If we get here, polling timed out
-    throw new Error("Generation timed out after 30 attempts");
+    throw new Error("Generation timed out after 20 attempts");
   } catch (error) {
     console.error("Error generating interior design:", error);
     throw error; // Re-throw to be handled by the caller

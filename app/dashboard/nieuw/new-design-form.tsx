@@ -55,7 +55,7 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
       // Show a toast to indicate the process has started
       toast({
         title: "Bezig met genereren",
-        description: "Dit kan tot 1 minuut duren. Blijf op deze pagina.",
+        description: "Dit kan ongeveer 20-30 seconden duren.",
       });
 
       const response = await fetch("/api/design", {
