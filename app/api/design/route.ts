@@ -63,12 +63,18 @@ export async function POST(req: NextRequest) {
       try {
         console.log("Starting background processing for design:", design.id);
 
-        // Generate the design
-        const outputImageUrl = await generateInteriorDesign(
-          imageUrl,
-          roomType,
-          style
-        );
+        // Set a timeout for the entire generation process
+        const timeoutPromise = new Promise<string>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error("Generation timed out after 50 seconds"));
+          }, 50000); // 50 second timeout
+        });
+
+        // Race between the generation and the timeout
+        const outputImageUrl = await Promise.race([
+          generateInteriorDesign(imageUrl, roomType, style),
+          timeoutPromise,
+        ]);
 
         console.log("Generated image URL:", outputImageUrl);
 

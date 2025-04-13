@@ -16,6 +16,13 @@ export async function generateInteriorDesign(
   try {
     console.log("Trying with Stable Diffusion v1.5...");
 
+    // Use a webhook if NEXT_PUBLIC_APP_URL is set
+    const webhookUrl = process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/replicate/webhook`
+      : undefined;
+
+    console.log("Webhook URL:", webhookUrl || "Not configured");
+
     // Start the prediction with the latest public version of SD 1.5
     const startResponse = await fetch(
       "https://api.replicate.com/v1/predictions",
@@ -38,18 +45,28 @@ export async function generateInteriorDesign(
             strength: 0.75,
             negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
           },
+          webhook: webhookUrl,
+          webhook_events_filter: ["completed"],
         }),
       }
     );
 
+    const responseText = await startResponse.text();
+    console.log("Raw response from Replicate:", responseText);
+
     if (!startResponse.ok) {
-      const errorText = await startResponse.text();
-      console.error("Failed to start SD 1.5 prediction:", errorText);
-      throw new Error(`SD 1.5 prediction failed: ${errorText}`);
+      console.error("Failed to start SD 1.5 prediction:", responseText);
+      throw new Error(`SD 1.5 prediction failed: ${responseText}`);
     }
 
-    const jsonStartResponse = await startResponse.json();
-    console.log("SD 1.5 prediction started:", jsonStartResponse.id);
+    let jsonStartResponse;
+    try {
+      jsonStartResponse = JSON.parse(responseText);
+      console.log("SD 1.5 prediction started:", jsonStartResponse.id);
+    } catch (e) {
+      console.error("Failed to parse response JSON:", e);
+      throw new Error(`Failed to parse response: ${responseText}`);
+    }
 
     const endpointUrl = jsonStartResponse.urls.get;
 
@@ -71,14 +88,30 @@ export async function generateInteriorDesign(
         },
       });
 
+      const statusResponseText = await finalResponse.text();
+      console.log(`Poll attempt ${attempts + 1} response:`, statusResponseText);
+
       if (!finalResponse.ok) {
-        console.error("Error checking SD 1.5 prediction status");
-        throw new Error(
-          `Error checking SD 1.5 status: ${await finalResponse.text()}`
+        console.error(
+          "Error checking SD 1.5 prediction status:",
+          statusResponseText
         );
+        throw new Error(`Error checking SD 1.5 status: ${statusResponseText}`);
       }
 
-      const jsonFinalResponse = await finalResponse.json();
+      let jsonFinalResponse;
+      try {
+        jsonFinalResponse = JSON.parse(statusResponseText);
+        console.log(
+          `Poll attempt ${attempts + 1} status:`,
+          jsonFinalResponse.status
+        );
+      } catch (e) {
+        console.error("Failed to parse status response JSON:", e);
+        throw new Error(
+          `Failed to parse status response: ${statusResponseText}`
+        );
+      }
 
       if (jsonFinalResponse.status === "succeeded") {
         generatedImage = Array.isArray(jsonFinalResponse.output)
@@ -108,230 +141,103 @@ export async function generateInteriorDesign(
     }
 
     // If we get here, it means we timed out
+    console.log("SD 1.5 generation timed out after 30 attempts");
     throw new Error("SD 1.5 generation timed out");
   } catch (error) {
     // Log the error and try the fallback model
     console.error("Error with SD 1.5:", error);
     console.log("Trying fallback model...");
-    return await fallbackGeneration(imageUrl, prompt);
+    return await simpleFallback(imageUrl, prompt);
   }
 }
 
 /**
- * Fallback generation using SDXL
+ * Simple fallback that uses a different model
  */
-async function fallbackGeneration(
+async function simpleFallback(
   imageUrl: string,
   prompt: string
 ): Promise<string> {
-  console.log("Using fallback model (SDXL)");
+  console.log("Using simple fallback model");
 
   try {
-    // Start the prediction with the latest public version of SDXL
-    const startResponse = await fetch(
-      "https://api.replicate.com/v1/predictions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
+    // Try a simpler approach with a different model
+    const response = await fetch("https://api.replicate.com/v1/predictions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
+      },
+      body: JSON.stringify({
+        // Use a different model - Stable Diffusion 2.1
+        version:
+          "ee88d150d4344c7ba6b1a2324a5a6c91e1963c8ed5f49e6fdaa3da9fe4c661ec",
+        input: {
+          prompt: prompt,
+          image: imageUrl,
+          strength: 0.6,
         },
-        body: JSON.stringify({
-          // Latest public version of SDXL
-          version:
-            "d830ba2e722b0f9a0c18a4cfb620597b6d6810df178a39a7bdb40f2506203896",
-          input: {
-            prompt: prompt,
-            image: imageUrl,
-            num_outputs: 1,
-            guidance_scale: 7.5,
-            num_inference_steps: 20,
-            strength: 0.7,
-            negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
-          },
-        }),
-      }
-    );
+      }),
+    });
 
-    if (!startResponse.ok) {
-      const errorText = await startResponse.text();
-      console.error("Failed to start SDXL prediction:", errorText);
+    const responseText = await response.text();
+    console.log("Raw response from fallback model:", responseText);
 
-      // Try one more fallback - ControlNet
-      return await controlNetFallback(imageUrl, prompt);
-    }
-
-    const jsonStartResponse = await startResponse.json();
-    console.log("SDXL prediction started:", jsonStartResponse.id);
-
-    const endpointUrl = jsonStartResponse.urls.get;
-
-    // Poll for the result
-    let attempts = 0;
-    const maxAttempts = 30;
-
-    while (attempts < maxAttempts) {
-      console.log(
-        `Polling for SDXL result... (attempt ${attempts + 1}/${maxAttempts})`
-      );
-
-      const finalResponse = await fetch(endpointUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
-        },
-      });
-
-      if (!finalResponse.ok) {
-        console.error(
-          "Error checking SDXL prediction status:",
-          await finalResponse.text()
-        );
-        break;
-      }
-
-      const jsonFinalResponse = await finalResponse.json();
-
-      if (jsonFinalResponse.status === "succeeded") {
-        const output = Array.isArray(jsonFinalResponse.output)
-          ? jsonFinalResponse.output[0]
-          : jsonFinalResponse.output;
-
-        if (output && typeof output === "string") {
-          console.log("SDXL generation succeeded:", output);
-          return output;
-        } else {
-          console.error("Invalid SDXL output format:", output);
-          break;
-        }
-      } else if (jsonFinalResponse.status === "failed") {
-        console.error("SDXL generation failed:", jsonFinalResponse.error);
-        break;
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      attempts++;
-    }
-
-    // If we get here, try the ControlNet fallback
-    return await controlNetFallback(imageUrl, prompt);
-  } catch (error) {
-    console.error("SDXL generation error:", error);
-
-    // Try ControlNet as a last resort
-    return await controlNetFallback(imageUrl, prompt);
-  }
-}
-
-/**
- * Final fallback using ControlNet
- */
-async function controlNetFallback(
-  imageUrl: string,
-  prompt: string
-): Promise<string> {
-  console.log("Using final fallback model (ControlNet)");
-
-  try {
-    // Start the prediction with ControlNet
-    const startResponse = await fetch(
-      "https://api.replicate.com/v1/predictions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
-        },
-        body: JSON.stringify({
-          // Latest public version of ControlNet
-          version:
-            "6c3589c95aeeb5a23d5a0e30953ec953d983d9e91d4f6d3af0c3c7c5fa7b2c3c",
-          input: {
-            prompt: prompt,
-            image: imageUrl,
-            structure: "canny",
-            num_samples: "1",
-            image_resolution: "512",
-            ddim_steps: 20,
-            scale: 9.0,
-            seed: Math.floor(Math.random() * 1000000),
-            a_prompt:
-              "best quality, high resolution, photo-realistic, ultra-detailed",
-            n_prompt:
-              "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, blurry, distorted",
-          },
-        }),
-      }
-    );
-
-    if (!startResponse.ok) {
-      const errorText = await startResponse.text();
-      console.error("Failed to start ControlNet prediction:", errorText);
+    if (!response.ok) {
+      console.error("Failed to start fallback prediction:", responseText);
       return "/placeholder.svg?text=Generation+Failed";
     }
 
-    const jsonStartResponse = await startResponse.json();
-    console.log("ControlNet prediction started:", jsonStartResponse.id);
+    let jsonResponse;
+    try {
+      jsonResponse = JSON.parse(responseText);
+      console.log("Fallback prediction started:", jsonResponse.id);
+    } catch (e) {
+      console.error("Failed to parse fallback response JSON:", e);
+      return "/placeholder.svg?text=Generation+Failed";
+    }
 
-    const endpointUrl = jsonStartResponse.urls.get;
+    const endpointUrl = jsonResponse.urls.get;
 
-    // Poll for the result
-    let attempts = 0;
-    const maxAttempts = 30;
+    // Poll for the result with a simpler approach
+    for (let i = 0; i < 30; i++) {
+      console.log(`Polling for fallback result... (attempt ${i + 1}/30)`);
 
-    while (attempts < maxAttempts) {
-      console.log(
-        `Polling for ControlNet result... (attempt ${
-          attempts + 1
-        }/${maxAttempts})`
-      );
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const finalResponse = await fetch(endpointUrl, {
-        method: "GET",
+      const statusResponse = await fetch(endpointUrl, {
         headers: {
-          "Content-Type": "application/json",
           Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
         },
       });
 
-      if (!finalResponse.ok) {
-        console.error(
-          "Error checking ControlNet prediction status:",
-          await finalResponse.text()
-        );
-        break;
+      if (!statusResponse.ok) {
+        console.error("Error checking fallback status");
+        continue;
       }
 
-      const jsonFinalResponse = await finalResponse.json();
+      const statusData = await statusResponse.json();
+      console.log(`Fallback poll attempt ${i + 1} status:`, statusData.status);
 
-      if (jsonFinalResponse.status === "succeeded") {
-        const output = Array.isArray(jsonFinalResponse.output)
-          ? jsonFinalResponse.output[0]
-          : jsonFinalResponse.output;
+      if (statusData.status === "succeeded") {
+        const output = Array.isArray(statusData.output)
+          ? statusData.output[0]
+          : statusData.output;
 
         if (output && typeof output === "string") {
-          console.log("ControlNet generation succeeded:", output);
+          console.log("Fallback generation succeeded:", output);
           return output;
-        } else {
-          console.error("Invalid ControlNet output format:", output);
-          break;
         }
-      } else if (jsonFinalResponse.status === "failed") {
-        console.error("ControlNet generation failed:", jsonFinalResponse.error);
+      } else if (statusData.status === "failed") {
+        console.error("Fallback generation failed:", statusData.error);
         break;
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-
-      attempts++;
     }
 
-    // If all else fails, return a placeholder
+    // If we get here, return a placeholder
     return "/placeholder.svg?text=Generation+Failed";
   } catch (error) {
-    console.error("ControlNet generation error:", error);
+    console.error("Fallback generation error:", error);
     return "/placeholder.svg?text=Generation+Failed";
   }
 }
