@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,18 @@ export function Navbar() {
   }
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: "/" });
+    // Clear auth cookies directly
+    document.cookie =
+      "next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    document.cookie =
+      "__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    document.cookie =
+      "next-auth.csrf-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    document.cookie =
+      "__Secure-next-auth.csrf-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+
+    // Redirect to home page
+    window.location.href = "/";
   };
 
   const handleSignIn = () => {
@@ -144,6 +155,15 @@ export function Navbar() {
               </Link>
             </nav>
           )}
+          {/* Always show logout button */}
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleSignOut}
+            className="ml-2">
+            <LogOut className="mr-2 h-4 w-4" />
+            Uitloggen
+          </Button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -260,11 +280,11 @@ export function Navbar() {
                   className="text-sm font-medium transition-colors hover:text-primary flex items-center"
                   onClick={() => setMobileMenuOpen(false)}>
                   <CreditCard className="mr-2 h-4 w-4" />
-                  Credits: {session.user.credits}
+                  Credits
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-sm font-medium transition-colors hover:text-primary flex items-center text-left w-full">
+                  className="text-sm font-medium transition-colors hover:text-primary flex items-center text-left w-full text-red-500">
                   <LogOut className="mr-2 h-4 w-4" />
                   Uitloggen
                 </button>
