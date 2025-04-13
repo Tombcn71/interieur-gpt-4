@@ -80,8 +80,9 @@ export const authOptions: AuthOptions = {
       }
 
       // Update credits on session refresh
-      if (trigger === "update" && token.id) {
+      if (trigger === "update") {
         try {
+          console.log("Updating session for user:", token.id);
           const dbUser = await getUserByEmail(token.email as string);
           if (dbUser) {
             // Check if credits are negative and fix them automatically
@@ -102,12 +103,11 @@ export const authOptions: AuthOptions = {
                 );
               }
             } else {
+              // Update the credits in the token
+              const oldCredits = token.credits || 0;
               token.credits = dbUser.credits;
               console.log(
-                "Updated credits for user:",
-                token.id,
-                "Credits:",
-                token.credits
+                `Updated credits for user ${token.id} from ${oldCredits} to ${token.credits}`
               );
             }
           }

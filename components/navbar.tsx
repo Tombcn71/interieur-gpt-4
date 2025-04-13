@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import {
@@ -13,13 +13,44 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, CreditCard, LogOut, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
+
+  const searchParams = useSearchParams();
+
+  // Check for success parameter and refresh session
+  useEffect(() => {
+    const success = searchParams.get("success");
+    if (success === "true" && status === "authenticated") {
+      // Refresh the session to get updated credits
+      const refreshSession = async () => {
+        await fetch("/api/auth/session?update=true");
+        // Force a session update
+        const event = new Event("visibilitychange");
+        document.dispatchEvent(event);
+        // Additional fallback - hard refresh after a delay
+        setTimeout(() => {
+          router.refresh();
+        }, 500);
+      };
+
+      refreshSession();
+
+      // Show a toast or notification that credits were added
+      toast({
+        title: "Payment Successful",
+        description: "Your credits have been added to your account.",
+        duration: 5000,
+      });
+    }
+  }, [searchParams, status, router]);
 
   // Don't show the navbar on the homepage
   if (pathname === "/") {
