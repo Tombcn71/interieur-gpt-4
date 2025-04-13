@@ -72,6 +72,9 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      console.log(
+        `Checkout session created with client_reference_id: ${session.user.id}`
+      );
       console.log("Checkout session created successfully", checkoutSession.id);
       return NextResponse.json({ url: checkoutSession.url });
     } catch (stripeError: any) {
