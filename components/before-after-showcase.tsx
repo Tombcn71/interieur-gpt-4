@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Zap } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Zap } from "lucide-react";
 
 export function BeforeAfterShowcase() {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Use static placeholder images instead of dynamic ones
-  const beforeImage = "/placeholder.svg"
-  const afterImage = "/placeholder.svg"
+  // Use actual images instead of placeholders
+  const beforeImage = "/images/before-interior.jpg";
+  const afterImage = "/images/after-interior.jpg";
 
   return (
     <div className="relative">
@@ -23,8 +23,7 @@ export function BeforeAfterShowcase() {
       <div
         className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white"
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+        onMouseLeave={() => setIsHovered(false)}>
         <div className="relative aspect-[4/3] overflow-hidden">
           <div
             className="absolute inset-0 transition-transform duration-700 ease-in-out"
@@ -51,5 +50,5 @@ export function BeforeAfterShowcase() {
         </div>
       </div>
     </div>
-  )
+  );
 }
