@@ -7,7 +7,7 @@ export function PromoBanner() {
         <span className="bg-yellow-500 text-black px-2 py-0.5 rounded font-bold mx-1">
           "BF60"
         </span>{" "}
-        <span className=""> voor </span>
+        <span className=""> bij checkout </span>
         <span className="font-bold">50%</span> korting!
       </p>
     </div>
