@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, CreditCard, LogOut, Menu, X } from "lucide-react";
+import { Home, CreditCard, LogOut, Menu, X, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,8 +22,23 @@ export function Navbar() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
-
   const searchParams = useSearchParams();
+
+  // Force session refresh on mount and when pathname changes
+  useEffect(() => {
+    if (status === "authenticated") {
+      const refreshSession = async () => {
+        try {
+          console.log("Refreshing session data in navbar");
+          await update();
+        } catch (error) {
+          console.error("Error refreshing session in navbar:", error);
+        }
+      };
+
+      refreshSession();
+    }
+  }, [status, update, pathname]);
 
   // Check for success parameter and refresh session
   useEffect(() => {
@@ -31,8 +46,8 @@ export function Navbar() {
     if (success === "true" && status === "authenticated") {
       // Show a toast that credits were added
       toast({
-        title: "Payment Successful",
-        description: "Your credits have been added to your account.",
+        title: "Betaling geslaagd!",
+        description: "Je credits zijn toegevoegd aan je account.",
         duration: 5000,
       });
 
@@ -40,6 +55,12 @@ export function Navbar() {
       const refreshSession = async () => {
         try {
           console.log("Refreshing session after successful payment");
+
+          // Force a full refresh of the session data from the server
+          const response = await fetch("/api/auth/refresh-session");
+          if (response.ok) {
+            console.log("Session refreshed from server");
+          }
 
           // Update the client-side session
           await update();
@@ -55,7 +76,7 @@ export function Navbar() {
 
       refreshSession();
     }
-  }, [searchParams, status, update, router, pathname, toast]);
+  }, [searchParams, status, update, router, toast]);
 
   // Don't show the navbar on the homepage
   if (pathname === "/") {
@@ -73,6 +94,21 @@ export function Navbar() {
     );
   };
 
+  // Force refresh the session data
+  const handleRefreshCredits = async () => {
+    if (status === "authenticated") {
+      try {
+        await update();
+        toast({
+          title: "Credits bijgewerkt",
+          description: "Je credits zijn bijgewerkt.",
+        });
+      } catch (error) {
+        console.error("Error refreshing credits:", error);
+      }
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -82,7 +118,34 @@ export function Navbar() {
               interieurGPT
             </span>
           </Link>
+
+          {/* Main navigation links - more visible */}
+          {status === "authenticated" && (
+            <nav className="hidden md:flex items-center space-x-4">
+              <Link
+                href="/dashboard"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  pathname === "/dashboard"
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                }`}>
+                <Home className="inline-block mr-1 h-4 w-4" />
+                Dashboard
+              </Link>
+              <Link
+                href="/dashboard/nieuw"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  pathname === "/dashboard/nieuw"
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                }`}>
+                <Zap className="inline-block mr-1 h-4 w-4" />
+                Nieuw ontwerp
+              </Link>
+            </nav>
+          )}
         </div>
+
         <div className="flex items-center gap-4">
           {status === "loading" ? (
             <div className="h-8 w-24 bg-muted animate-pulse rounded-md"></div>
@@ -92,7 +155,8 @@ export function Navbar() {
                 variant="outline"
                 size="sm"
                 asChild
-                className="hidden md:flex rounded-full">
+                className="hidden md:flex rounded-full"
+                onClick={handleRefreshCredits}>
                 <Link href="/dashboard/credits">
                   <CreditCard className="mr-2 h-4 w-4" />
                   <span>{session.user.credits} Credits</span>
@@ -129,6 +193,12 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link href="/dashboard/nieuw">
+                      <Zap className="mr-2 h-4 w-4" />
+                      <span>Nieuw ontwerp</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/dashboard/credits">
                       <CreditCard className="mr-2 h-4 w-4" />
                       <span>Credits: {session.user.credits}</span>
@@ -162,12 +232,29 @@ export function Navbar() {
         <div className="md:hidden border-t p-4">
           <nav className="flex flex-col space-y-4">
             {status === "authenticated" && session && (
-              <Link
-                href="/dashboard"
-                className="text-sm font-medium transition-colors hover:text-primary"
-                onClick={() => setMobileMenuOpen(false)}>
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                  onClick={() => setMobileMenuOpen(false)}>
+                  <Home className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Link
+                  href="/dashboard/nieuw"
+                  className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                  onClick={() => setMobileMenuOpen(false)}>
+                  <Zap className="mr-2 h-4 w-4" />
+                  Nieuw ontwerp
+                </Link>
+                <Link
+                  href="/dashboard/credits"
+                  className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+                  onClick={() => setMobileMenuOpen(false)}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Credits: {session.user.credits}
+                </Link>
+              </>
             )}
           </nav>
         </div>

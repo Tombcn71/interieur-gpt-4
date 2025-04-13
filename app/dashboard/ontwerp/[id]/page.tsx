@@ -8,6 +8,7 @@ import { getDesignById } from "@/lib/db";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { AuthCheck } from "@/components/auth-check";
+import { ArrowLeft, Zap, Home, Download } from "lucide-react";
 
 export default async function DesignDetailPage({
   params,
@@ -31,6 +32,18 @@ export default async function DesignDetailPage({
       <Navbar />
       <main className="flex-1 py-8">
         <div className="container max-w-5xl">
+          {/* Breadcrumb navigation */}
+          <div className="flex items-center text-sm text-muted-foreground mb-4">
+            <Link
+              href="/dashboard"
+              className="hover:text-foreground flex items-center">
+              <Home className="h-3.5 w-3.5 mr-1" />
+              Dashboard
+            </Link>
+            <span className="mx-2">/</span>
+            <span>Ontwerp details</span>
+          </div>
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold capitalize">
@@ -40,9 +53,20 @@ export default async function DesignDetailPage({
                 Gemaakt op {formatDate(design.created_at)}
               </p>
             </div>
-            <Button variant="outline" asChild>
-              <Link href="/dashboard">Terug naar dashboard</Link>
-            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" asChild className="flex items-center">
+                <Link href="/dashboard">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Terug naar dashboard
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/dashboard/nieuw">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Nieuw ontwerp
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -80,8 +104,19 @@ export default async function DesignDetailPage({
                       </div>
                     </div>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-4">
+                  <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-4 flex justify-between items-center">
                     <h3 className="font-medium">Gegenereerd ontwerp</h3>
+                    {design.result_image_url && (
+                      <a
+                        href={design.result_image_url}
+                        download={`interieurGPT-${design.room_type}-${design.style}.jpg`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 flex items-center">
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
+                      </a>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -116,6 +151,22 @@ export default async function DesignDetailPage({
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Clear navigation options */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <Button variant="outline" asChild className="flex-1 sm:flex-none">
+              <Link href="/dashboard">
+                <Home className="mr-2 h-4 w-4" />
+                Terug naar dashboard
+              </Link>
+            </Button>
+            <Button asChild className="flex-1 sm:flex-none">
+              <Link href="/dashboard/nieuw">
+                <Zap className="mr-2 h-4 w-4" />
+                Maak nog een ontwerp
+              </Link>
+            </Button>
           </div>
         </div>
       </main>

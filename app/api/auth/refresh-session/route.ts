@@ -43,6 +43,8 @@ export async function GET() {
       user: {
         id: user.id,
         credits: user.credits,
+        name: user.name,
+        email: user.email,
       },
       sessionCredits: session.user.credits,
       databaseCredits: user.credits,
