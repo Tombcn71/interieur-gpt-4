@@ -7,12 +7,10 @@ import { AlertCircle } from "lucide-react";
 export function ReplicateCheck() {
   const [showWarning, setShowWarning] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isDevelopment, setIsDevelopment] = useState(false);
 
   useEffect(() => {
-    // Check if we're in development mode
+    // Only check in development mode
     if (process.env.NODE_ENV === "development") {
-      // Make a simple request to check Replicate configuration
       fetch("/api/replicate/check")
         .then((res) => res.json())
         .then((data) => {
@@ -21,7 +19,6 @@ export function ReplicateCheck() {
             setErrorMessage(
               data.error || "Replicate is not properly configured"
             );
-            setIsDevelopment(data.development);
           }
         })
         .catch(() => {
@@ -35,24 +32,15 @@ export function ReplicateCheck() {
 
   return (
     <div className="fixed bottom-4 left-4 z-50 max-w-md">
-      <Alert variant={isDevelopment ? "default" : "destructive"}>
+      <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Replicate Configuration Issue</AlertTitle>
         <AlertDescription>
-          {errorMessage}
-          {isDevelopment && (
-            <p className="mt-2">
-              Make sure you have set the REPLICATE_API_TOKEN environment
-              variable in your .env.local file. You can get an API token from{" "}
-              <a
-                href="https://replicate.com/account/api-tokens"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline">
-                https://replicate.com/account/api-tokens
-              </a>
-            </p>
-          )}
+          <p>{errorMessage}</p>
+          <p className="mt-2">
+            Please make sure your REPLICATE_API_TOKEN is correctly set in your
+            environment variables.
+          </p>
         </AlertDescription>
       </Alert>
     </div>
