@@ -46,6 +46,7 @@ export async function getUserByEmail(email: string) {
   }
 }
 
+// Update the function signature to explicitly handle null values
 export async function createUser(
   email: string,
   name: string,
@@ -56,9 +57,12 @@ export async function createUser(
       throw new Error("DATABASE_URL is not configured");
     }
 
+    // Ensure image is undefined if null
+    const safeImage = image === null ? undefined : image;
+
     const [user] = await sql`
       INSERT INTO users (email, name, image)
-      VALUES (${email}, ${name}, ${image})
+      VALUES (${email}, ${name}, ${safeImage})
       RETURNING *
     `;
     return user;

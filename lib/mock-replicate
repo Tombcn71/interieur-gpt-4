@@ -1,0 +1,15 @@
+// This is a mock implementation for development that doesn't rely on the Replicate API
+export async function mockGenerateInteriorDesign(
+  imageUrl: string,
+  roomType: string,
+  style: string
+) {
+  console.log(`[MOCK] Generating interior design: ${roomType}, ${style}`);
+  console.log(`[MOCK] Using image URL: ${imageUrl}`);
+
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // Return a placeholder image URL
+  return "https://placehold.co/600x400/jpeg?text=AI+Generated+Interior+Design";
+}

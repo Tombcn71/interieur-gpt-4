@@ -25,26 +25,30 @@ export async function generateInteriorDesign(
     );
   }
 
-  // Create a more descriptive prompt
+  // Create a more descriptive prompt for the general Stable Diffusion model
   const prompt = `Transform this ${roomType} into a beautiful ${style} style interior design. 
-  Make it look professional and realistic. Maintain the same layout and dimensions of the room.`;
+  Make it look professional, realistic, and high-quality. Maintain the same layout and dimensions of the room.`;
 
   try {
     console.log(
       `Generating interior design with Replicate: ${roomType}, ${style}`
     );
     console.log(`Using image URL: ${imageUrl}`);
+    console.log(`Using prompt: ${prompt}`);
 
-    // Use a more recent and reliable interior design model
-    // This is the "interior-diffusion" model which is specifically for interior design
+    // Use the standard Stable Diffusion model which is widely available
+    // This is one of the most popular models on Replicate and should work with any API token
     const output = await replicate.run(
-      "fofr/interior-diffusion:a2a8b9a89568a296e23376eb48b2309f6d9b14729c3b5b43a9bee4ebf2801f9b",
+      "stability-ai/stable-diffusion:ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
       {
         input: {
           prompt: prompt,
           image: imageUrl,
-          num_inference_steps: 30,
+          num_outputs: 1,
           guidance_scale: 7.5,
+          num_inference_steps: 30,
+          scheduler: "K_EULER_ANCESTRAL",
+          strength: 0.8, // Keep some of the original image structure
           negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
         },
       }
@@ -61,8 +65,43 @@ export async function generateInteriorDesign(
       console.error("Unexpected output format from Replicate:", output);
       throw new Error("Unexpected output format from Replicate");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating interior design with Replicate:", error);
+
+    // Check if the error is related to the model version
+    if (error.response && error.response.status === 422) {
+      console.log("Trying fallback model...");
+
+      // Try a fallback model if the first one fails
+      try {
+        // Use an even more basic and widely available model as fallback
+        const fallbackOutput = await replicate.run(
+          "stability-ai/sdxl:c221b2b8ef527988fb59bf24a8b97c4561f1c671f73bd389f866bfb27c061316",
+          {
+            input: {
+              prompt: prompt,
+              negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
+              width: 1024,
+              height: 1024,
+            },
+          }
+        );
+
+        console.log("Fallback model output:", fallbackOutput);
+
+        if (Array.isArray(fallbackOutput) && fallbackOutput.length > 0) {
+          return fallbackOutput[0];
+        } else if (typeof fallbackOutput === "string") {
+          return fallbackOutput;
+        }
+      } catch (fallbackError) {
+        console.error("Fallback model also failed:", fallbackError);
+        throw new Error(
+          "All available models failed. Please check your Replicate API token permissions."
+        );
+      }
+    }
+
     throw error;
   }
 }
