@@ -28,11 +28,11 @@ export default function LogoutPage() {
 
         // Finally, redirect to home page with a full page reload
         setStatus("Redirecting...");
-        window.location.href = "/";
+        window.location.href = "https://www.interieurgpt.nl";
       } catch (error) {
         console.error("Error during logout:", error);
         // Force redirect as a last resort
-        window.location.href = "/";
+        window.location.href = "https://www.interieurgpt.nl";
       }
     };
 

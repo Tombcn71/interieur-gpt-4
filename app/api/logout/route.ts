@@ -13,10 +13,7 @@ export async function POST() {
 async function handleLogout() {
   // Create a response that redirects to the home page
   const response = NextResponse.redirect(
-    new URL(
-      "/",
-      process.env.NEXT_PUBLIC_APP_URL || "https://www.interieurgpt.nl"
-    )
+    new URL("https://www.interieurgpt.nl")
   );
 
   // Get all cookies
