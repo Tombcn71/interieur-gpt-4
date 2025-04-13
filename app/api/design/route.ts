@@ -67,17 +67,13 @@ export async function POST(req: NextRequest) {
       console.log("Generated image URL:", outputImageUrl);
 
       // Validate the output URL
-      if (
-        !outputImageUrl ||
-        typeof outputImageUrl !== "string" ||
-        !outputImageUrl.startsWith("http")
-      ) {
-        console.error("Invalid output URL from Replicate:", outputImageUrl);
+      if (!outputImageUrl || typeof outputImageUrl !== "string") {
+        console.error("Invalid output from Replicate:", outputImageUrl);
         await updateDesignResult(design.id, "", "failed");
         return NextResponse.json(
           {
-            error: "Ongeldige afbeelding URL ontvangen van de AI service",
-            details: "The AI service returned an invalid URL format",
+            error: "Ongeldige uitvoer ontvangen van de AI service",
+            details: "The AI service returned an invalid output format",
           },
           { status: 500 }
         );

@@ -1,4 +1,5 @@
 import Replicate from "replicate";
+import { uploadImageBuffer } from "@/lib/blob";
 
 // Create the Replicate client
 const replicate = new Replicate({
@@ -36,7 +37,7 @@ export async function generateInteriorDesign(
     }
   );
 
-  console.log("Replicate output type:", typeof output, output);
+  console.log("Replicate output type:", typeof output);
 
   // Handle different output types from Replicate
   if (Array.isArray(output) && output.length > 0) {
@@ -53,25 +54,60 @@ export async function generateInteriorDesign(
 
       // Create a reader from the stream
       const reader = (firstOutput as ReadableStream<Uint8Array>).getReader();
-      let result = "";
+      const chunks: Uint8Array[] = [];
 
       try {
         // Read the stream chunks
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-
-          // Convert the chunk to a string
-          const chunk = new TextDecoder().decode(value);
-          result += chunk;
+          chunks.push(value);
         }
 
-        console.log("Processed stream result:", result);
+        // Combine all chunks into a single Uint8Array
+        const totalLength = chunks.reduce(
+          (acc, chunk) => acc + chunk.length,
+          0
+        );
+        const combinedChunks = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combinedChunks.set(chunk, offset);
+          offset += chunk.length;
+        }
 
-        // Try to parse the result as JSON if it looks like JSON
-        if (result.trim().startsWith("{") || result.trim().startsWith("[")) {
+        // Check if it's a PNG image (starts with PNG signature)
+        if (
+          combinedChunks.length > 8 &&
+          combinedChunks[0] === 0x89 &&
+          combinedChunks[1] === 0x50 &&
+          combinedChunks[2] === 0x4e &&
+          combinedChunks[3] === 0x47
+        ) {
+          console.log("Detected PNG image data, uploading to Blob storage...");
+
+          // Create a Blob from the Uint8Array
+          const blob = new Blob([combinedChunks], { type: "image/png" });
+
+          // Create a File object from the Blob
+          const file = new File([blob], "generated-interior.png", {
+            type: "image/png",
+          });
+
+          // Upload the file to Vercel Blob
+          const uploadedUrl = await uploadImageBuffer(file);
+          console.log("Uploaded image to Blob storage:", uploadedUrl);
+          return uploadedUrl;
+        }
+
+        // Try to convert to text and parse as JSON
+        const textDecoder = new TextDecoder();
+        const text = textDecoder.decode(combinedChunks);
+
+        // Check if it looks like JSON
+        if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
           try {
-            const parsedResult = JSON.parse(result);
+            const parsedResult = JSON.parse(text);
             if (Array.isArray(parsedResult) && parsedResult.length > 0) {
               return parsedResult[0];
             } else if (typeof parsedResult === "string") {
@@ -84,8 +120,18 @@ export async function generateInteriorDesign(
           }
         }
 
-        // If it's not JSON or parsing failed, return the raw result
-        return result;
+        // If it's not JSON or parsing failed, it might be binary data
+        // Upload it as a file to Vercel Blob
+        console.log(
+          "Treating output as binary data, uploading to Blob storage..."
+        );
+        const blob = new Blob([combinedChunks]);
+        const file = new File([blob], "generated-interior.bin", {
+          type: "application/octet-stream",
+        });
+        const uploadedUrl = await uploadImageBuffer(file);
+        console.log("Uploaded binary data to Blob storage:", uploadedUrl);
+        return uploadedUrl;
       } catch (e) {
         console.error("Error reading stream:", e);
         throw new Error("Failed to process Replicate output stream");
