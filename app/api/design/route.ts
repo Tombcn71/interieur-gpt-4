@@ -2,7 +2,10 @@ import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { createDesign, updateDesignResult, updateUserCredits } from "@/lib/db";
-import { generateInteriorDesign } from "@/lib/replicate";
+import {
+  generateInteriorDesign,
+  fallbackGenerateInteriorDesign,
+} from "@/lib/replicate";
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,12 +60,30 @@ export async function POST(req: NextRequest) {
     await updateUserCredits(userId, -1);
 
     try {
-      // Generate design with Replicate
-      const outputImageUrl = await generateInteriorDesign(
-        imageUrl,
-        roomType,
-        style
+      // Try to generate design with ControlNet
+      console.log(
+        "Attempting to generate design with ControlNet Hough model..."
       );
+      let outputImageUrl: string | null = null;
+
+      try {
+        outputImageUrl = await generateInteriorDesign(
+          imageUrl,
+          roomType,
+          style
+        );
+      } catch (controlNetError) {
+        console.error(
+          "ControlNet model error, falling back to SDXL:",
+          controlNetError
+        );
+        // If ControlNet fails, try the fallback model
+        outputImageUrl = await fallbackGenerateInteriorDesign(
+          imageUrl,
+          roomType,
+          style
+        );
+      }
 
       console.log("Generated image URL:", outputImageUrl);
 
