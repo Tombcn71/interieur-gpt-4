@@ -1,5 +1,6 @@
 /**
  * Simple and direct approach to generate interior designs using Replicate API
+ * With retry logic for network errors
  */
 export async function generateInteriorDesign(
   imageUrl: string,
@@ -12,143 +13,121 @@ export async function generateInteriorDesign(
   console.log(`Generating interior design: ${roomType}, ${style}`);
   console.log(`Using image URL: ${imageUrl}`);
 
-  // Try with Stable Diffusion v1.5 first (latest public version)
-  try {
-    console.log("Trying with Stable Diffusion v1.5...");
-
-    // Use a webhook if NEXT_PUBLIC_APP_URL is set
-    const webhookUrl = process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/replicate/webhook`
-      : undefined;
-
-    console.log("Webhook URL:", webhookUrl || "Not configured");
-
-    // Start the prediction with the latest public version of SD 1.5
-    const startResponse = await fetch(
-      "https://api.replicate.com/v1/predictions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
-        },
-        body: JSON.stringify({
-          // Latest public version of Stable Diffusion v1.5
-          version:
-            "42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b",
-          input: {
-            prompt: prompt,
-            image: imageUrl,
-            num_outputs: 1,
-            guidance_scale: 7.5,
-            num_inference_steps: 25,
-            strength: 0.75,
-            negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
-          },
-          webhook: webhookUrl,
-          webhook_events_filter: ["completed"],
-        }),
-      }
-    );
-
-    const responseText = await startResponse.text();
-    console.log("Raw response from Replicate:", responseText);
-
-    if (!startResponse.ok) {
-      console.error("Failed to start SD 1.5 prediction:", responseText);
-      throw new Error(`SD 1.5 prediction failed: ${responseText}`);
-    }
-
-    let jsonStartResponse;
+  // Try with Stable Diffusion v1.5 with basic retry logic
+  for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      jsonStartResponse = JSON.parse(responseText);
-      console.log("SD 1.5 prediction started:", jsonStartResponse.id);
-    } catch (e) {
-      console.error("Failed to parse response JSON:", e);
-      throw new Error(`Failed to parse response: ${responseText}`);
-    }
+      console.log(`Attempt ${attempt}/3 with Stable Diffusion 1.5...`);
 
-    const endpointUrl = jsonStartResponse.urls.get;
-
-    // Poll for the result
-    let generatedImage: string | null = null;
-    let attempts = 0;
-    const maxAttempts = 30; // 30 seconds max wait time
-
-    while (!generatedImage && attempts < maxAttempts) {
-      console.log(
-        `Polling for SD 1.5 result... (attempt ${attempts + 1}/${maxAttempts})`
+      // Start the prediction with the latest public version of SD 1.5
+      const startResponse = await fetch(
+        "https://api.replicate.com/v1/predictions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
+          },
+          body: JSON.stringify({
+            // Latest public version of Stable Diffusion v1.5
+            version:
+              "42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b",
+            input: {
+              prompt: prompt,
+              image: imageUrl,
+              num_outputs: 1,
+              guidance_scale: 7.5,
+              num_inference_steps: 25,
+              strength: 0.75,
+              negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
+            },
+          }),
+        }
       );
 
-      const finalResponse = await fetch(endpointUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
-        },
-      });
-
-      const statusResponseText = await finalResponse.text();
-      console.log(`Poll attempt ${attempts + 1} response:`, statusResponseText);
-
-      if (!finalResponse.ok) {
+      if (!startResponse.ok) {
+        const errorText = await startResponse.text();
         console.error(
-          "Error checking SD 1.5 prediction status:",
-          statusResponseText
+          `Failed to start SD 1.5 prediction (attempt ${attempt}):`,
+          errorText
         );
-        throw new Error(`Error checking SD 1.5 status: ${statusResponseText}`);
-      }
-
-      let jsonFinalResponse;
-      try {
-        jsonFinalResponse = JSON.parse(statusResponseText);
-        console.log(
-          `Poll attempt ${attempts + 1} status:`,
-          jsonFinalResponse.status
-        );
-      } catch (e) {
-        console.error("Failed to parse status response JSON:", e);
-        throw new Error(
-          `Failed to parse status response: ${statusResponseText}`
-        );
-      }
-
-      if (jsonFinalResponse.status === "succeeded") {
-        generatedImage = Array.isArray(jsonFinalResponse.output)
-          ? jsonFinalResponse.output[0]
-          : jsonFinalResponse.output;
-
-        console.log("SD 1.5 generation succeeded:", generatedImage);
-
-        // Make sure we have a valid string
-        if (generatedImage && typeof generatedImage === "string") {
-          return generatedImage;
-        } else {
-          console.error("Invalid SD 1.5 output format:", generatedImage);
-          throw new Error(
-            `Invalid SD 1.5 output format: ${JSON.stringify(generatedImage)}`
-          );
+        // Wait before retrying
+        if (attempt < 3) {
+          await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+          continue;
         }
-      } else if (jsonFinalResponse.status === "failed") {
-        console.error("SD 1.5 generation failed:", jsonFinalResponse.error);
-        throw new Error(`SD 1.5 generation failed: ${jsonFinalResponse.error}`);
-      } else {
-        // Wait 1 second before polling again
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        throw new Error(`SD 1.5 prediction failed: ${errorText}`);
       }
 
-      attempts++;
-    }
+      const jsonStartResponse = await startResponse.json();
+      console.log("SD 1.5 prediction started:", jsonStartResponse.id);
 
-    // If we get here, it means we timed out
-    console.log("SD 1.5 generation timed out after 30 attempts");
-    throw new Error("SD 1.5 generation timed out");
-  } catch (error) {
-    // Log the error and try the fallback model
-    console.error("Error with SD 1.5:", error);
-    console.log("Trying fallback model...");
-    return await simpleFallback(imageUrl, prompt);
+      const endpointUrl = jsonStartResponse.urls.get;
+
+      // Poll for the result
+      for (let pollAttempt = 1; pollAttempt <= 30; pollAttempt++) {
+        console.log(`Polling for SD 1.5 result... (attempt ${pollAttempt}/30)`);
+
+        try {
+          // Wait between poll attempts
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          const finalResponse = await fetch(endpointUrl, {
+            headers: {
+              Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
+            },
+          });
+
+          if (!finalResponse.ok) {
+            console.log(`Poll attempt ${pollAttempt} failed, will retry...`);
+            continue;
+          }
+
+          const jsonFinalResponse = await finalResponse.json();
+          console.log(
+            `Poll attempt ${pollAttempt} status:`,
+            jsonFinalResponse.status
+          );
+
+          if (jsonFinalResponse.status === "succeeded") {
+            const output = Array.isArray(jsonFinalResponse.output)
+              ? jsonFinalResponse.output[0]
+              : jsonFinalResponse.output;
+
+            if (output && typeof output === "string") {
+              console.log("SD 1.5 generation succeeded:", output);
+              return output;
+            }
+          } else if (jsonFinalResponse.status === "failed") {
+            console.error("SD 1.5 generation failed:", jsonFinalResponse.error);
+            break;
+          }
+          // If still processing, continue polling
+        } catch (pollError) {
+          console.error(`Error polling (attempt ${pollAttempt}):`, pollError);
+          // Continue polling despite errors
+        }
+      }
+
+      // If we get here, polling timed out or failed
+      throw new Error("SD 1.5 generation timed out or failed");
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error);
+
+      if (attempt < 3) {
+        // Wait before retrying
+        const backoffMs = 2000 * attempt;
+        console.log(`Retrying in ${backoffMs}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      } else {
+        // Try fallback after all retries fail
+        console.log("All attempts with SD 1.5 failed, trying fallback...");
+        return await simpleFallback(imageUrl, prompt);
+      }
+    }
   }
+
+  // If all attempts fail, try fallback
+  return await simpleFallback(imageUrl, prompt);
 }
 
 /**
@@ -180,22 +159,13 @@ async function simpleFallback(
       }),
     });
 
-    const responseText = await response.text();
-    console.log("Raw response from fallback model:", responseText);
-
     if (!response.ok) {
-      console.error("Failed to start fallback prediction:", responseText);
+      console.error("Failed to start fallback prediction");
       return "/placeholder.svg?text=Generation+Failed";
     }
 
-    let jsonResponse;
-    try {
-      jsonResponse = JSON.parse(responseText);
-      console.log("Fallback prediction started:", jsonResponse.id);
-    } catch (e) {
-      console.error("Failed to parse fallback response JSON:", e);
-      return "/placeholder.svg?text=Generation+Failed";
-    }
+    const jsonResponse = await response.json();
+    console.log("Fallback prediction started:", jsonResponse.id);
 
     const endpointUrl = jsonResponse.urls.get;
 
@@ -203,7 +173,7 @@ async function simpleFallback(
     for (let i = 0; i < 30; i++) {
       console.log(`Polling for fallback result... (attempt ${i + 1}/30)`);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const statusResponse = await fetch(endpointUrl, {
         headers: {
