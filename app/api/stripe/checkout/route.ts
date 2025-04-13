@@ -93,10 +93,14 @@ export async function POST(req: NextRequest) {
         // Add metadata for the webhook
         metadata: {
           userId: session.user.id,
-          userEmail: email,
+          debug: "true",
         },
       });
 
+      console.log(
+        "Created checkout session with client_reference_id:",
+        session.user.id
+      );
       console.log(
         `Checkout session created with client_reference_id: ${session.user.id} and email: ${email}`
       );

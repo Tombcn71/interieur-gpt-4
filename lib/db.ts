@@ -73,12 +73,16 @@ export async function createUser(
   }
 }
 
-// Update the updateUserCredits function to prevent negative credits
+// Update the updateUserCredits function to be more robust
 export async function updateUserCredits(userId: string, credits: number) {
   try {
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL is not configured");
     }
+
+    console.log(
+      `Updating credits for user ${userId}: adding ${credits} credits`
+    );
 
     // If we're deducting credits, make sure we don't go below zero
     if (credits < 0) {
@@ -87,6 +91,8 @@ export async function updateUserCredits(userId: string, credits: number) {
       if (!user) {
         throw new Error(`User not found: ${userId}`);
       }
+
+      console.log(`User ${userId} current credits: ${user.credits}`);
 
       // If the user doesn't have enough credits, don't update
       if (user.credits + credits < 0) {
@@ -101,14 +107,20 @@ export async function updateUserCredits(userId: string, credits: number) {
     // Proceed with the update, ensuring we never go below zero
     const [user] = await sql`
       UPDATE users
-      SET credits = GREATEST(0, credits + ${credits})
+      SET credits = GREATEST(0, credits + ${credits}),
+          updated_at = CURRENT_TIMESTAMP
       WHERE id = ${userId}
       RETURNING *
     `;
+
+    console.log(
+      `Credits updated successfully for user ${userId}. New credits:`,
+      user ? user.credits : "unknown"
+    );
     return user;
   } catch (error) {
     console.error("Error updating user credits:", error);
-    return null;
+    throw error; // Re-throw to ensure the webhook handler catches it
   }
 }
 

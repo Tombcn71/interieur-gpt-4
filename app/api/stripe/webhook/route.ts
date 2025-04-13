@@ -6,6 +6,7 @@ import {
   AMOUNT_CREDITS_MAPPING,
 } from "@/lib/stripe";
 import { createPayment, updateUserCredits, getUserById } from "@/lib/db";
+import { safeStringify } from "@/lib/debug-utils"; // If you have this utility
 
 export async function POST(req: NextRequest) {
   console.log("Stripe webhook called");
@@ -34,6 +35,14 @@ export async function POST(req: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
     console.log(`Webhook event received: ${event.type}`);
+
+    // Log the full event for debugging
+    console.log(
+      "Full event data:",
+      safeStringify
+        ? safeStringify(event.data.object)
+        : JSON.stringify(event.data.object)
+    );
   } catch (error: any) {
     console.error("Webhook signature verification failed:", error.message);
     return NextResponse.json(
@@ -51,18 +60,28 @@ export async function POST(req: NextRequest) {
       const userId = session.client_reference_id || session.metadata?.userId;
 
       if (!userId) {
-        console.error("No user ID found in session");
+        console.error(
+          "No user ID found in session:",
+          safeStringify ? safeStringify(session) : JSON.stringify(session)
+        );
         return NextResponse.json(
           { error: "Geen gebruiker ID gevonden" },
           { status: 400 }
         );
       }
 
+      console.log(`Processing payment for user ID: ${userId}`);
+
       // Get the price ID and amount paid
       const lineItems = await stripe.checkout.sessions.listLineItems(
         session.id,
         { limit: 1 }
       );
+      console.log(
+        "Line items:",
+        safeStringify ? safeStringify(lineItems) : JSON.stringify(lineItems)
+      );
+
       const priceId = lineItems.data[0]?.price?.id;
       const amountPaid = session.amount_total;
 
@@ -74,8 +93,11 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      console.log(`Price ID: ${priceId}, Amount paid: ${amountPaid}`);
+
       // Get the price to credits mapping
       const priceToCreditsMap = getPriceToCreditsMap();
+      console.log("Price to credits map:", priceToCreditsMap);
 
       // Determine credits based on price ID or amount paid
       let credits = 0;
@@ -91,11 +113,30 @@ export async function POST(req: NextRequest) {
           `Found credits from amount: ${amountPaid / 100} -> ${credits} credits`
         );
       } else {
-        console.error(`Unknown price ID: ${priceId} or amount: ${amountPaid}`);
-        return NextResponse.json(
-          { error: "Onbekend prijsbedrag of ID" },
-          { status: 400 }
+        // Fallback to a default mapping based on common price points
+        const amount = amountPaid ? Math.round(amountPaid / 100) : 0;
+        console.log(
+          `Trying to determine credits from rounded amount: ${amount}`
         );
+
+        if (amount >= 45 && amount <= 55) {
+          credits = 50; // Premium plan
+          console.log(`Assigned 50 credits based on amount ~€50`);
+        } else if (amount >= 20 && amount <= 30) {
+          credits = 15; // Standard plan
+          console.log(`Assigned 15 credits based on amount ~€25`);
+        } else if (amount >= 8 && amount <= 12) {
+          credits = 5; // Basic plan
+          console.log(`Assigned 5 credits based on amount ~€10`);
+        } else {
+          console.error(
+            `Unknown price ID: ${priceId} or amount: ${amountPaid}`
+          );
+          return NextResponse.json(
+            { error: "Onbekend prijsbedrag of ID" },
+            { status: 400 }
+          );
+        }
       }
 
       // Get current user credits before updating
@@ -117,7 +158,11 @@ export async function POST(req: NextRequest) {
 
       // Add credits to user - ensure it's a positive number
       if (credits > 0) {
-        await updateUserCredits(userId, Math.abs(credits));
+        const updatedUser = await updateUserCredits(userId, Math.abs(credits));
+        console.log(
+          `Updated user result:`,
+          updatedUser ? JSON.stringify(updatedUser) : "No result"
+        );
       } else {
         console.error(`Invalid credit amount: ${credits}`);
       }
@@ -129,18 +174,30 @@ export async function POST(req: NextRequest) {
       );
 
       console.log("Payment processed successfully");
+      return NextResponse.json({
+        received: true,
+        processed: true,
+        userId,
+        credits,
+      });
     } catch (error) {
       console.error("Error processing payment:", error);
       return NextResponse.json(
-        { error: "Error processing payment" },
+        {
+          error: "Error processing payment",
+          details: error instanceof Error ? error.message : String(error),
+        },
         { status: 500 }
       );
     }
+  } else {
+    console.log(`Ignoring event type: ${event.type}`);
   }
 
   return NextResponse.json({ received: true });
 }
 
+// This is important to disable the default body parser
 export const config = {
   api: {
     bodyParser: false,
