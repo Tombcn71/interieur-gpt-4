@@ -85,8 +85,8 @@ export async function POST(req: NextRequest) {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/nieuw?success=true`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/credits?canceled=true`,
         client_reference_id: session.user.id,
         // Pre-fill the customer's email
         customer_email: email,

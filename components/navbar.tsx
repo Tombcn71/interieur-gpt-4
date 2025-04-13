@@ -17,7 +17,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export function Navbar() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -29,36 +29,31 @@ export function Navbar() {
   useEffect(() => {
     const success = searchParams.get("success");
     if (success === "true" && status === "authenticated") {
-      // Refresh the session to get updated credits
-      const refreshSession = async () => {
-        try {
-          // Get the latest user data from the database
-          const response = await fetch("/api/auth/refresh-session");
-          const data = await response.json();
-
-          if (data.success && data.user) {
-            // Force a hard refresh to update everything
-            window.location.href = "/dashboard";
-          } else {
-            // Fallback to router refresh
-            router.refresh();
-          }
-        } catch (error) {
-          console.error("Failed to refresh session:", error);
-          router.refresh();
-        }
-      };
-
-      refreshSession();
-
-      // Show a toast or notification that credits were added
+      // Show a toast that credits were added
       toast({
         title: "Payment Successful",
         description: "Your credits have been added to your account.",
         duration: 5000,
       });
+
+      // Force a complete session update
+      const refreshSession = async () => {
+        try {
+          // First update the session through NextAuth
+          await update();
+
+          // Then redirect to the new design page
+          window.location.href = "/dashboard/nieuw";
+        } catch (error) {
+          console.error("Failed to refresh session:", error);
+          // Fallback to simple redirect
+          window.location.href = "/dashboard/nieuw";
+        }
+      };
+
+      refreshSession();
     }
-  }, [searchParams, status, router, toast]);
+  }, [searchParams, status, toast, update, router]);
 
   // Don't show the navbar on the homepage
   if (pathname === "/") {
@@ -96,7 +91,7 @@ export function Navbar() {
                 size="sm"
                 asChild
                 className="hidden md:flex rounded-full">
-                <Link href="/dashboard">
+                <Link href="/dashboard/credits">
                   <CreditCard className="mr-2 h-4 w-4" />
                   <span>{session.user.credits} Credits</span>
                 </Link>

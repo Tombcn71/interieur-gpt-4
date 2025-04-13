@@ -79,10 +79,10 @@ export const authOptions: AuthOptions = {
         }
       }
 
-      // Update credits on session refresh
-      if (trigger === "update") {
+      // Always update credits on every token refresh
+      if (token.id) {
         try {
-          console.log("Updating session for user:", token.id);
+          console.log(`JWT callback: Refreshing credits for user ${token.id}`);
           const dbUser = await getUserByEmail(token.email as string);
           if (dbUser) {
             // Check if credits are negative and fix them automatically
