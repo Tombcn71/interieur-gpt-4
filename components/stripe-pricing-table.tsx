@@ -1,32 +1,62 @@
 "use client";
 
-import React from "react";
-
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Script from "next/script";
+import { useSession } from "next-auth/react";
 
-export function StripePricingTable() {
+interface StripePricingTableProps {
+  pricingTableId: string;
+  publishableKey: string;
+}
+
+export function StripePricingTable({
+  pricingTableId,
+  publishableKey,
+}: StripePricingTableProps) {
+  const { data: session } = useSession();
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+
   useEffect(() => {
-    if (window.StripePricingTable) {
+    // Only try to initialize if both the script is loaded and we have a session
+    if (isScriptLoaded && window.StripePricingTable && session?.user?.id) {
       const elements = document.querySelectorAll("stripe-pricing-table");
       elements.forEach((element) => {
+        // Add the user ID as a client reference ID
+        element.setAttribute("client-reference-id", session.user.id);
+        // Force re-render of the component
         element.innerHTML = element.innerHTML;
       });
     }
-  }, []);
+  }, [isScriptLoaded, session]);
+
+  // Handle script load event
+  const handleScriptLoad = () => {
+    setIsScriptLoaded(true);
+  };
+
+  if (!pricingTableId || !publishableKey) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-red-500">
+          Stripe pricing table configuration is missing. Please check your
+          environment variables.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
       <Script
         src="https://js.stripe.com/v3/pricing-table.js"
         strategy="afterInteractive"
+        onLoad={handleScriptLoad}
       />
       <div className="w-full max-w-6xl mx-auto">
-        {/* Use a workaround to avoid TypeScript errors */}
         {React.createElement("stripe-pricing-table", {
-          "pricing-table-id": "prctbl_1RA7VmBqJiHgClybiFCg6oTI",
-          "publishable-key":
-            "pk_live_51R8xZaBqJiHgClybecxWOsCD9dAPIaNnvEj6vuEEEADt15b4ByouDBsUGpfwIPTugRUAwx0sonp44rWe5xgcljSg00EvCqraGW",
+          "pricing-table-id": pricingTableId,
+          "publishable-key": publishableKey,
+          "client-reference-id": session?.user?.id || "",
         })}
       </div>
     </>
