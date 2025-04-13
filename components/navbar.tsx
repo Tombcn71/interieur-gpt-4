@@ -25,8 +25,8 @@ export function Navbar() {
   }
 
   const handleSignOut = () => {
-    // Navigate to the dedicated logout page
-    router.push("/logout");
+    // Navigate to the hard-logout page instead
+    router.push("/hard-logout");
   };
 
   return (
@@ -34,6 +34,20 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
+            <div className="flex items-center justify-center w-10 h-10 bg-blue-500 text-white rounded-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-6 h-6">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </div>
             <span className="font-bold text-2xl text-blue-500">
               interieurGPT
             </span>

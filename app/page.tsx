@@ -58,7 +58,7 @@ export default function Home() {
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src="/images/hero-interior.jpg"
+                    src="/images/hero.png"
                     alt="Modern interior design"
                     className="w-full h-full object-cover"
                   />
