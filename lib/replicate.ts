@@ -22,27 +22,28 @@ export async function generateInteriorDesign(
   console.log(`Using prompt: ${prompt}`);
 
   // Use ControlNet Hough model for more precise room transformations
+  // Note: Converting numeric values to strings as required by the API
   const output = await replicate.run(
     "jagilley/controlnet-hough:854e8727697a057c525cdb45ab037f64ecca770a1769cc52287c2e56472a247b",
     {
       input: {
         prompt: prompt,
         image: imageUrl,
-        num_samples: 1,
-        image_resolution: 768,
-        ddim_steps: 50,
-        scale: 9.0,
-        seed: Math.floor(Math.random() * 1000000),
-        eta: 0.0,
+        num_samples: "1", // Convert to string
+        image_resolution: "768", // Convert to string
+        ddim_steps: "50", // Convert to string
+        scale: "9.0", // Convert to string
+        seed: Math.floor(Math.random() * 1000000).toString(), // Convert to string
+        eta: "0.0", // Convert to string
         a_prompt:
           "best quality, high resolution, photo-realistic, ultra-detailed",
         n_prompt:
           "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, blurry, distorted",
-        detect_resolution: 768,
-        low_threshold: 100,
-        high_threshold: 200,
-        value_threshold: 0.1,
-        distance_threshold: 0.1,
+        detect_resolution: "768", // Convert to string
+        low_threshold: "100", // Convert to string
+        high_threshold: "200", // Convert to string
+        value_threshold: "0.1", // Convert to string
+        distance_threshold: "0.1", // Convert to string
       },
     }
   );
