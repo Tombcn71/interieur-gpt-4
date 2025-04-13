@@ -23,6 +23,8 @@ export function StripeCheckoutButton({
 
     try {
       console.log("Starting checkout process with priceId:", priceId);
+      console.log("User email:", session?.user?.email);
+      console.log("User ID:", session?.user?.id);
 
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",

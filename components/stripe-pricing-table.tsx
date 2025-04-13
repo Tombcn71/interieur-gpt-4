@@ -1,48 +1,28 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Script from "next/script";
+import React, { useEffect } from "react";
 import { useSession } from "next-auth/react";
 
-interface StripePricingTableProps {
+// Define the props for our component
+interface Props {
   pricingTableId: string;
   publishableKey: string;
 }
 
-export function StripePricingTable({
-  pricingTableId,
-  publishableKey,
-}: StripePricingTableProps) {
+export function StripePricingTable({ pricingTableId, publishableKey }: Props) {
   const { data: session } = useSession();
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
-    // Only try to initialize if both the script is loaded and we have a session
-    if (isScriptLoaded && window.StripePricingTable && session?.user?.id) {
-      console.log(
-        "Setting client_reference_id on stripe-pricing-table:",
-        session.user.id
-      );
-      const elements = document.querySelectorAll("stripe-pricing-table");
-      elements.forEach((element) => {
-        // Add the user ID as a client reference ID
-        element.setAttribute("client-reference-id", session.user.id);
+    const script = document.createElement("script");
+    script.src = "https://js.stripe.com/v3/pricing-table.js";
+    script.async = true;
 
-        // Add customer email as a data attribute (will be picked up by our checkout endpoint)
-        if (session.user.email) {
-          element.setAttribute("data-customer-email", session.user.email);
-        }
+    document.body.appendChild(script);
 
-        // Force re-render of the component
-        element.innerHTML = element.innerHTML;
-      });
-    }
-  }, [isScriptLoaded, session]);
-
-  // Handle script load event
-  const handleScriptLoad = () => {
-    setIsScriptLoaded(true);
-  };
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   if (!pricingTableId || !publishableKey) {
     return (
@@ -55,21 +35,22 @@ export function StripePricingTable({
     );
   }
 
+  if (!session?.user) {
+    return <div>Please log in to view pricing options</div>;
+  }
+
+  console.log("Rendering Stripe Pricing Table with user ID:", session.user.id);
+  console.log("User email:", session.user.email);
+
+  // Use createElement to avoid TypeScript errors with custom elements
   return (
-    <>
-      <Script
-        src="https://js.stripe.com/v3/pricing-table.js"
-        strategy="afterInteractive"
-        onLoad={handleScriptLoad}
-      />
-      <div className="w-full max-w-6xl mx-auto">
-        {React.createElement("stripe-pricing-table", {
-          "pricing-table-id": pricingTableId,
-          "publishable-key": publishableKey,
-          "client-reference-id": session?.user?.id || "",
-          "data-customer-email": session?.user?.email || "",
-        })}
-      </div>
-    </>
+    <div className="w-full max-w-6xl mx-auto">
+      {React.createElement("stripe-pricing-table", {
+        "pricing-table-id": pricingTableId,
+        "publishable-key": publishableKey,
+        "client-reference-id": session?.user?.id,
+        "customer-email": session?.user?.email || "",
+      })}
+    </div>
   );
 }
