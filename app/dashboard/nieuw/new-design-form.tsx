@@ -27,7 +27,14 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
   const [credits, setCredits] = useState(initialCredits);
   const { toast } = useToast();
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
+
+  // Always use the latest credits from the session
+  useEffect(() => {
+    if (session?.user?.credits !== undefined) {
+      setCredits(session.user.credits);
+    }
+  }, [session?.user?.credits]);
 
   // Use a normalized credits value (never negative)
   const normalizedCredits = credits < 0 ? 0 : credits;
@@ -39,12 +46,14 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
       setNeedsCredits(false);
       setError(null);
     }
+  }, [normalizedCredits, needsCredits]);
 
-    // Get the latest credits from the session if available
-    if (session?.user?.credits !== undefined) {
-      setCredits(session.user.credits);
+  // Refresh session when component mounts to ensure we have the latest credits
+  useEffect(() => {
+    if (status === "authenticated") {
+      update();
     }
-  }, [normalizedCredits, needsCredits, session?.user?.credits]);
+  }, [status, update]);
 
   const handleSubmit = async () => {
     if (!imageUrl) {
@@ -117,6 +126,9 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
       // Update local credits state
       setCredits((prev) => Math.max(0, prev - 1));
 
+      // Update the session to reflect the new credit count
+      await update();
+
       toast({
         title: "Succes!",
         description: "Je ontwerp is succesvol gemaakt",
@@ -167,7 +179,7 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
           </div>
 
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="warning">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Fout</AlertTitle>
               <AlertDescription>

@@ -36,24 +36,46 @@ export function Navbar() {
         duration: 5000,
       });
 
-      // Force a complete session update
+      // Refresh the session to get updated credits
       const refreshSession = async () => {
         try {
-          // First update the session through NextAuth
-          await update();
+          console.log("Refreshing session after successful payment");
 
-          // Then redirect to the new design page
-          window.location.href = "/dashboard/nieuw";
+          // First get the latest user data from the database
+          const response = await fetch("/api/auth/refresh-session");
+          const data = await response.json();
+
+          if (data.success) {
+            console.log(
+              "Session refreshed successfully, updating client session"
+            );
+            // Update the client-side session
+            await update();
+
+            // If we're not already on the new design page, redirect there
+            if (pathname !== "/dashboard/nieuw") {
+              console.log("Redirecting to /dashboard/nieuw");
+              router.push("/dashboard/nieuw");
+            }
+          } else {
+            console.error("Failed to refresh session:", data.error);
+            // Still redirect even if refresh fails
+            if (pathname !== "/dashboard/nieuw") {
+              router.push("/dashboard/nieuw");
+            }
+          }
         } catch (error) {
-          console.error("Failed to refresh session:", error);
-          // Fallback to simple redirect
-          window.location.href = "/dashboard/nieuw";
+          console.error("Error refreshing session:", error);
+          // Still redirect even if refresh fails
+          if (pathname !== "/dashboard/nieuw") {
+            router.push("/dashboard/nieuw");
+          }
         }
       };
 
       refreshSession();
     }
-  }, [searchParams, status, toast, update, router]);
+  }, [searchParams, status, update, router, pathname, toast]);
 
   // Don't show the navbar on the homepage
   if (pathname === "/") {

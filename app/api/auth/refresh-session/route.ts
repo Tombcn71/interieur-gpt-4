@@ -8,15 +8,25 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+      console.log("No session found in refresh-session API");
+      return NextResponse.json(
+        { error: "Not authenticated", success: false },
+        { status: 401 }
+      );
     }
 
     // Get the latest user data from the database
     const userId = String(session.user.id);
+    console.log(`Refreshing session for user ${userId}`);
+
     const user = await getUserById(userId);
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      console.log(`User ${userId} not found in database`);
+      return NextResponse.json(
+        { error: "User not found", success: false },
+        { status: 404 }
+      );
     }
 
     // Log the credits for debugging
@@ -34,11 +44,13 @@ export async function GET() {
         id: user.id,
         credits: user.credits,
       },
+      sessionCredits: session.user.credits,
+      databaseCredits: user.credits,
     });
   } catch (error) {
     console.error("Error refreshing session:", error);
     return NextResponse.json(
-      { error: "Failed to refresh session" },
+      { error: "Failed to refresh session", success: false },
       { status: 500 }
     );
   }
