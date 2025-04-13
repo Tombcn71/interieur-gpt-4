@@ -155,15 +155,6 @@ export function Navbar() {
               </Link>
             </nav>
           )}
-          {/* Always show logout button */}
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleSignOut}
-            className="ml-2">
-            <LogOut className="mr-2 h-4 w-4" />
-            Uitloggen
-          </Button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -233,14 +224,6 @@ export function Navbar() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="hidden md:flex ml-2">
-                <LogOut className="mr-2 h-4 w-4" />
-                Uitloggen
-              </Button>
             </>
           ) : (
             <Button onClick={handleSignIn} className="rounded-full">
