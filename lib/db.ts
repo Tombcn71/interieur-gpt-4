@@ -107,8 +107,7 @@ export async function updateUserCredits(userId: string, credits: number) {
     // Proceed with the update, ensuring we never go below zero
     const [user] = await sql`
       UPDATE users
-      SET credits = GREATEST(0, credits + ${credits}),
-          updated_at = CURRENT_TIMESTAMP
+      SET credits = GREATEST(0, credits + ${credits})
       WHERE id = ${userId}
       RETURNING *
     `;
