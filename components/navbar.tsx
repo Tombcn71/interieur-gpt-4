@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,7 @@ export function Navbar() {
   }
 
   const handleSignOut = () => {
-    router.push("/api/auth/signout?callbackUrl=/");
+    signOut({ callbackUrl: "/" });
   };
 
   const handleSignIn = () => {
