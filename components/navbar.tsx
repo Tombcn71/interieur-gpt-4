@@ -130,31 +130,39 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Main navigation links - more visible */}
-          {status === "authenticated" && (
-            <nav className="hidden md:flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === "/dashboard"
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}>
-                <Home className="inline-block mr-1 h-4 w-4" />
-                Dashboard
-              </Link>
-              <Link
-                href="/dashboard/nieuw"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === "/dashboard/nieuw"
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}>
-                <Zap className="inline-block mr-1 h-4 w-4" />
-                Nieuw ontwerp
-              </Link>
-            </nav>
-          )}
+          {/* Main navigation links - always visible */}
+          <nav className="hidden md:flex items-center space-x-4">
+            <Link
+              href="/dashboard"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                pathname === "/dashboard"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              }`}>
+              <Home className="inline-block mr-1 h-4 w-4" />
+              Dashboard
+            </Link>
+            <Link
+              href="/dashboard/nieuw"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                pathname === "/dashboard/nieuw"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              }`}>
+              <Zap className="inline-block mr-1 h-4 w-4" />
+              Nieuw ontwerp
+            </Link>
+            <Link
+              href="/dashboard/credits"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                pathname === "/dashboard/credits"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              }`}>
+              <CreditCard className="inline-block mr-1 h-4 w-4" />
+              Credits
+            </Link>
+          </nav>
         </div>
 
         <div className="flex items-center gap-4">
@@ -230,6 +238,15 @@ export function Navbar() {
               Inloggen
             </Button>
           )}
+          {/* Always visible logout button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="ml-2">
+            <LogOut className="mr-2 h-4 w-4" />
+            Uitloggen
+          </Button>
           <Button
             variant="ghost"
             className="md:hidden"
