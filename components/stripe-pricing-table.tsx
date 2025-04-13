@@ -19,10 +19,20 @@ export function StripePricingTable({
   useEffect(() => {
     // Only try to initialize if both the script is loaded and we have a session
     if (isScriptLoaded && window.StripePricingTable && session?.user?.id) {
+      console.log(
+        "Setting client_reference_id on stripe-pricing-table:",
+        session.user.id
+      );
       const elements = document.querySelectorAll("stripe-pricing-table");
       elements.forEach((element) => {
         // Add the user ID as a client reference ID
         element.setAttribute("client-reference-id", session.user.id);
+
+        // Add customer email as a data attribute (will be picked up by our checkout endpoint)
+        if (session.user.email) {
+          element.setAttribute("data-customer-email", session.user.email);
+        }
+
         // Force re-render of the component
         element.innerHTML = element.innerHTML;
       });
@@ -57,6 +67,7 @@ export function StripePricingTable({
           "pricing-table-id": pricingTableId,
           "publishable-key": publishableKey,
           "client-reference-id": session?.user?.id || "",
+          "data-customer-email": session?.user?.email || "",
         })}
       </div>
     </>

@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { priceId } = body;
+    const { priceId, customerEmail } = body;
 
     if (!priceId) {
       console.error("No priceId provided");
@@ -49,8 +49,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Use the email from the request body or fall back to the session email
+    const email = customerEmail || session.user.email;
+
     console.log(
-      `Creating checkout session for user ${session.user.id} with priceId ${priceId}`
+      `Creating checkout session for user ${session.user.id} with priceId ${priceId} and email ${email}`
     );
 
     try {
@@ -66,14 +69,17 @@ export async function POST(req: NextRequest) {
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
         client_reference_id: session.user.id,
+        // Pre-fill the customer's email
+        customer_email: email,
         // Add metadata for the webhook
         metadata: {
           userId: session.user.id,
+          userEmail: email,
         },
       });
 
       console.log(
-        `Checkout session created with client_reference_id: ${session.user.id}`
+        `Checkout session created with client_reference_id: ${session.user.id} and email: ${email}`
       );
       console.log("Checkout session created successfully", checkoutSession.id);
       return NextResponse.json({ url: checkoutSession.url });

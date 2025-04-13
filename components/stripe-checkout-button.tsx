@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useSession } from "next-auth/react";
 
 interface StripeCheckoutButtonProps {
   priceId: string;
@@ -15,17 +16,23 @@ export function StripeCheckoutButton({
 }: StripeCheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { data: session } = useSession();
 
   const handleCheckout = async () => {
     setIsLoading(true);
 
     try {
+      console.log("Starting checkout process with priceId:", priceId);
+
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({
+          priceId,
+          customerEmail: session?.user?.email,
+        }),
       });
 
       const data = await response.json();
