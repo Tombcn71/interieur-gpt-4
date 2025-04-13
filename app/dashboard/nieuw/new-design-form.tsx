@@ -8,7 +8,7 @@ import { RoomTypeSelector } from "@/components/room-type-selector";
 import { StyleSelector } from "@/components/style-selector";
 import { ImageUpload } from "@/components/image-upload";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, AlertCircle, AlertTriangle } from "lucide-react";
+import { Zap, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -17,24 +17,28 @@ interface NewDesignFormProps {
   credits: number;
 }
 
-export function NewDesignForm({ credits }: NewDesignFormProps) {
+export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
   const [roomType, setRoomType] = useState("woonkamer");
   const [style, setStyle] = useState("modern");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsCredits, setNeedsCredits] = useState(false);
+  const [credits, setCredits] = useState(initialCredits);
   const { toast } = useToast();
   const router = useRouter();
   const { data: session, status } = useSession();
 
+  // Use a normalized credits value (never negative)
+  const normalizedCredits = credits < 0 ? 0 : credits;
+
   // Reset error state when credits change
   useEffect(() => {
-    if (credits > 0 && needsCredits) {
+    if (normalizedCredits > 0 && needsCredits) {
       setNeedsCredits(false);
       setError(null);
     }
-  }, [credits, needsCredits]);
+  }, [normalizedCredits, needsCredits]);
 
   const handleSubmit = async () => {
     if (!imageUrl) {
@@ -58,7 +62,7 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
     }
 
     // Check credits client-side first
-    if (credits <= 0) {
+    if (normalizedCredits <= 0) {
       setError("Je hebt niet genoeg credits om een ontwerp te maken.");
       setNeedsCredits(true);
       return;
@@ -104,6 +108,9 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
         throw new Error(data.error || "Er is een fout opgetreden");
       }
 
+      // Update local credits state
+      setCredits((prev) => Math.max(0, prev - 1));
+
       toast({
         title: "Succes!",
         description: "Je ontwerp is succesvol gemaakt",
@@ -143,11 +150,13 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
             <h2 className="text-xl font-semibold">Ontwerp details</h2>
             <div
               className={`rounded-full px-4 py-1 ${
-                credits < 1
+                normalizedCredits < 1
                   ? "bg-red-50 text-red-600"
                   : "bg-blue-50 text-blue-600"
               }`}>
-              <span className="text-sm font-medium">Credits: {credits}</span>
+              <span className="text-sm font-medium">
+                Credits: {normalizedCredits}
+              </span>
             </div>
           </div>
 
@@ -168,9 +177,9 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
             </Alert>
           )}
 
-          {credits <= 0 && !error && (
+          {normalizedCredits <= 0 && !error && (
             <Alert variant="warning">
-              <AlertTriangle className="h-4 w-4" />
+              <AlertCircle className="h-4 w-4" />
               <AlertTitle>Niet genoeg credits</AlertTitle>
               <AlertDescription>
                 Je hebt niet genoeg credits om een ontwerp te maken.
@@ -196,7 +205,7 @@ export function NewDesignForm({ credits }: NewDesignFormProps) {
                 !imageUrl ||
                 isSubmitting ||
                 status !== "authenticated" ||
-                credits <= 0
+                normalizedCredits <= 0
               }
               className="w-full rounded-full h-12">
               {isSubmitting ? (

@@ -1,5 +1,5 @@
 import type { AuthOptions } from "next-auth";
-import { createUser, getUserByEmail } from "@/lib/db";
+import { createUser, getUserByEmail, fixNegativeCredits } from "@/lib/db";
 
 // Use AuthOptions instead of NextAuthOptions
 export const authOptions: AuthOptions = {
@@ -84,13 +84,32 @@ export const authOptions: AuthOptions = {
         try {
           const dbUser = await getUserByEmail(token.email as string);
           if (dbUser) {
-            token.credits = dbUser.credits;
-            console.log(
-              "Updated credits for user:",
-              token.id,
-              "Credits:",
-              token.credits
-            );
+            // Check if credits are negative and fix them automatically
+            if (dbUser.credits < 0) {
+              console.log(
+                `Found negative credits (${dbUser.credits}) for user ${token.id}, fixing automatically`
+              );
+              const updatedUser = await fixNegativeCredits(token.id as string);
+              if (updatedUser) {
+                token.credits = updatedUser.credits;
+                console.log(
+                  `Fixed credits for user ${token.id} to ${token.credits}`
+                );
+              } else {
+                token.credits = 1; // Fallback if fix fails
+                console.log(
+                  `Failed to fix credits, setting to 1 for user ${token.id}`
+                );
+              }
+            } else {
+              token.credits = dbUser.credits;
+              console.log(
+                "Updated credits for user:",
+                token.id,
+                "Credits:",
+                token.credits
+              );
+            }
           }
         } catch (error) {
           console.error("Error updating credits in JWT callback:", error);
@@ -103,7 +122,10 @@ export const authOptions: AuthOptions = {
       if (token && session.user) {
         // Add custom properties to the session.user object
         session.user.id = String(token.id);
-        session.user.credits = (token.credits as number) || 0;
+
+        // Ensure credits are never negative in the session
+        const credits = (token.credits as number) || 0;
+        session.user.credits = credits < 0 ? 0 : credits;
 
         // Log the session user ID for debugging
         console.log(

@@ -1,11 +1,10 @@
 import { Navbar } from "@/components/navbar";
 import { PricingSection } from "@/components/pricing-section";
 import { StripePricingTable } from "@/components/stripe-pricing-table";
-import { FixCreditsButton } from "@/components/fix-credits-button";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AuthCheck } from "@/components/auth-check";
-import { getUserById } from "@/lib/db";
+import { getUserById, fixNegativeCredits } from "@/lib/db";
 
 export default async function CreditsPage() {
   const session = await getServerSession(authOptions);
@@ -17,7 +16,17 @@ export default async function CreditsPage() {
   // Get the latest user data from the database
   const userId = String(session.user.id);
   const user = await getUserById(userId);
-  const credits = user?.credits || session.user.credits;
+
+  // Automatically fix negative credits server-side without showing UI
+  let credits = user?.credits || session.user.credits;
+  if (credits < 0) {
+    console.log(
+      `Automatically fixing negative credits (${credits}) for user ${userId}`
+    );
+    const updatedUser = await fixNegativeCredits(userId);
+    credits = updatedUser?.credits || 0;
+    console.log(`Credits fixed to ${credits} for user ${userId}`);
+  }
 
   // Get Stripe configuration from environment variables
   const pricingTableId = process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID || "";
@@ -37,11 +46,6 @@ export default async function CreditsPage() {
               Je hebt momenteel <span className="font-medium">{credits}</span>{" "}
               credits. Koop meer credits om meer interieurontwerpen te maken.
             </p>
-          </div>
-
-          {/* Show fix credits button if credits are negative */}
-          <div className="max-w-3xl mx-auto">
-            <FixCreditsButton credits={credits} />
           </div>
 
           {showStripePricingTable ? (

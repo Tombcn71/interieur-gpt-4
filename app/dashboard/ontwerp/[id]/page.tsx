@@ -1,29 +1,29 @@
-import { Navbar } from "@/components/navbar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { getServerSession } from "next-auth/next"
-import { redirect } from "next/navigation"
-import { authOptions } from "@/lib/auth"
-import { getDesignById } from "@/lib/db"
-import Link from "next/link"
-import { formatDate } from "@/lib/utils"
-import { AuthCheck } from "@/components/auth-check"
+import { Navbar } from "@/components/navbar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { getServerSession } from "next-auth/next";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
+import { getDesignById } from "@/lib/db";
+import Link from "next/link";
+import { formatDate } from "@/lib/utils";
+import { AuthCheck } from "@/components/auth-check";
 
 export default async function DesignDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: { id: string };
 }) {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 
   if (!session) {
-    return <AuthCheck>{null}</AuthCheck>
+    return <AuthCheck>{null}</AuthCheck>;
   }
 
-  const design = await getDesignById(params.id)
+  const design = await getDesignById(params.id);
 
   if (!design || design.user_id !== Number.parseInt(session.user.id)) {
-    redirect("/dashboard")
+    redirect("/dashboard");
   }
 
   return (
@@ -36,7 +36,9 @@ export default async function DesignDetailPage({
               <h1 className="text-3xl font-bold capitalize">
                 {design.room_type} - {design.style}
               </h1>
-              <p className="text-muted-foreground">Gemaakt op {formatDate(design.created_at)}</p>
+              <p className="text-muted-foreground">
+                Gemaakt op {formatDate(design.created_at)}
+              </p>
             </div>
             <Button variant="outline" asChild>
               <Link href="/dashboard">Terug naar dashboard</Link>
@@ -72,7 +74,9 @@ export default async function DesignDetailPage({
                     <div className="w-full h-full flex items-center justify-center bg-muted">
                       <div className="text-center p-4">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground">Ontwerp wordt gegenereerd...</p>
+                        <p className="text-muted-foreground">
+                          Ontwerp wordt gegenereerd...
+                        </p>
                       </div>
                     </div>
                   )}
@@ -100,7 +104,9 @@ export default async function DesignDetailPage({
                   <div>
                     <p className="text-sm text-muted-foreground">Status</p>
                     <p className="font-medium capitalize">
-                      {design.status === "completed" ? "Voltooid" : "In behandeling"}
+                      {design.status === "completed"
+                        ? "Voltooid"
+                        : "In behandeling"}
                     </p>
                   </div>
                   <div>
@@ -114,5 +120,5 @@ export default async function DesignDetailPage({
         </div>
       </main>
     </div>
-  )
+  );
 }

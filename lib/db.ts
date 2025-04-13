@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import type { Design } from "@/types/design";
 
 // Check if DATABASE_URL is available and valid
 if (
@@ -135,16 +136,38 @@ export async function fixNegativeCredits(userId: string) {
       throw new Error("DATABASE_URL is not configured");
     }
 
-    const [user] = await sql`
-      UPDATE users
-      SET credits = GREATEST(0, credits)
-      WHERE id = ${userId} AND credits < 0
-      RETURNING *
-    `;
-    return user;
+    console.log(`Attempting to fix negative credits for user ${userId}`);
+
+    // First check if the user has negative credits
+    const user = await getUserById(userId);
+
+    if (!user) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    console.log(`User ${userId} current credits: ${user.credits}`);
+
+    if (user.credits < 0) {
+      // Reset credits to 1 if they're negative
+      const [updatedUser] = await sql`
+        UPDATE users
+        SET credits = 1
+        WHERE id = ${userId} AND credits < 0
+        RETURNING *
+      `;
+      console.log(
+        `Updated user ${userId} credits from ${user.credits} to ${updatedUser.credits}`
+      );
+      return updatedUser;
+    } else {
+      console.log(
+        `User ${userId} does not have negative credits, no update needed`
+      );
+      return user;
+    }
   } catch (error) {
     console.error("Error fixing negative credits:", error);
-    return null;
+    throw error;
   }
 }
 
@@ -184,7 +207,7 @@ export async function createDesign(
       VALUES (${userIdNum}, ${roomType}, ${style}, ${originalImageUrl}, ${prompt})
       RETURNING *
     `;
-    return design;
+    return design as Design;
   } catch (error) {
     console.error("Error creating design:", error);
     throw error;
@@ -207,14 +230,14 @@ export async function updateDesignResult(
       WHERE id = ${designId}
       RETURNING *
     `;
-    return design;
+    return design as Design;
   } catch (error) {
     console.error("Error updating design result:", error);
     return null;
   }
 }
 
-export async function getUserDesigns(userId: string) {
+export async function getUserDesigns(userId: string): Promise<Design[]> {
   try {
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL is not configured");
@@ -232,14 +255,14 @@ export async function getUserDesigns(userId: string) {
       WHERE user_id = ${userIdNum}
       ORDER BY created_at DESC
     `;
-    return designs;
+    return designs as Design[];
   } catch (error) {
     console.error("Error getting user designs:", error);
     return [];
   }
 }
 
-export async function getDesignById(id: string) {
+export async function getDesignById(id: string): Promise<Design | null> {
   try {
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL is not configured");
@@ -248,7 +271,7 @@ export async function getDesignById(id: string) {
     const [design] = await sql`
       SELECT * FROM designs WHERE id = ${id}
     `;
-    return design;
+    return (design as Design) || null;
   } catch (error) {
     console.error("Error getting design by ID:", error);
     return null;
