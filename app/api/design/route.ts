@@ -57,45 +57,49 @@ export async function POST(req: NextRequest) {
     // Deduct credit
     await updateUserCredits(userId, -1);
 
-    // Start the generation process in the background
-    // This prevents the API route from timing out
-    void (async () => {
-      try {
-        console.log("Starting background processing for design:", design.id);
+    // IMPORTANT: Instead of doing background processing, we'll do it synchronously
+    // This will make the API route wait for the generation to complete
+    try {
+      console.log("Starting image generation for design:", design.id);
 
-        // Set a timeout for the entire generation process
-        const timeoutPromise = new Promise<string>((_, reject) => {
-          setTimeout(() => {
-            reject(new Error("Generation timed out after 50 seconds"));
-          }, 50000); // 50 second timeout
-        });
+      // Generate the design (this will now block the API route until complete)
+      const outputImageUrl = await generateInteriorDesign(
+        imageUrl,
+        roomType,
+        style
+      );
 
-        // Race between the generation and the timeout
-        const outputImageUrl = await Promise.race([
-          generateInteriorDesign(imageUrl, roomType, style),
-          timeoutPromise,
-        ]);
+      console.log("Generated image URL:", outputImageUrl);
 
-        console.log("Generated image URL:", outputImageUrl);
+      // Update design with result
+      await updateDesignResult(design.id, outputImageUrl, "completed");
+      console.log("Design updated with result:", design.id);
 
-        // Update design with result
-        await updateDesignResult(design.id, outputImageUrl, "completed");
-        console.log("Design updated with result:", design.id);
-      } catch (error) {
-        console.error("Background processing error:", error);
-        await updateDesignResult(design.id, "", "failed");
-      }
-    })();
+      // Return success with the completed design
+      return NextResponse.json({
+        success: true,
+        message: "Design creation completed",
+        design: {
+          ...design,
+          result_image_url: outputImageUrl,
+          status: "completed",
+        },
+      });
+    } catch (error) {
+      console.error("Image generation error:", error);
 
-    // Return immediately with the design ID
-    return NextResponse.json({
-      success: true,
-      message: "Design creation started",
-      design: {
-        ...design,
-        status: "processing",
-      },
-    });
+      // Update the design as failed
+      await updateDesignResult(design.id, "", "failed");
+
+      // Return error to the client
+      return NextResponse.json(
+        {
+          error: "Er is een fout opgetreden bij het genereren van het ontwerp",
+          details: error instanceof Error ? error.message : String(error),
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("General error in design API:", error);
     const errorMessage =
