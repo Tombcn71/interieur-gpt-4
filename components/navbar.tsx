@@ -25,9 +25,10 @@ export function Navbar() {
     return null;
   }
 
+  // Update the handleSignOut function to use a standard logout URL
   const handleSignOut = () => {
-    // Navigate to the hard-logout page instead
-    router.push("/hard-logout");
+    // Navigate to the standard logout page
+    window.location.href = "/logout?t=" + Date.now();
   };
 
   return (

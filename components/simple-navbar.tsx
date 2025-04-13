@@ -16,22 +16,8 @@ export function SimpleNavbar() {
 
   // Direct logout function that doesn't rely on next-auth
   const handleDirectLogout = () => {
-    // Clear cookies manually
-    document.cookie =
-      "next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "next-auth.csrf-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "__Secure-next-auth.csrf-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "next-auth.callback-url=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "__Secure-next-auth.callback-url=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-
-    // Redirect to home page
-    window.location.href = "/";
+    // Redirect to the standard logout page
+    window.location.href = "/logout?t=" + Date.now();
   };
 
   return (

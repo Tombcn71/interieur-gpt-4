@@ -1,32 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { Logo } from "@/components/logo";
 
 export default function LogoutPage() {
-  const router = useRouter();
   const [status, setStatus] = useState("Logging out...");
 
   useEffect(() => {
     const performLogout = async () => {
       try {
-        // First, try to use the NextAuth signOut function
+        // Clear all cookies manually
         setStatus("Clearing session...");
-        await signOut({ redirect: false });
-
-        // Then, clear all cookies manually as a backup
-        setStatus("Clearing cookies...");
         document.cookie.split(";").forEach((cookie) => {
           const [name] = cookie.trim().split("=");
           document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;`;
-          // Also try with domain
-          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=.interieurgpt.nl`;
-          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=interieurgpt.nl`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=${window.location.hostname}`;
         });
 
         // Call our API route to clear server-side cookies
-        setStatus("Clearing server-side session...");
         await fetch("/api/logout", {
           method: "POST",
           cache: "no-store",
@@ -36,12 +27,12 @@ export default function LogoutPage() {
           },
         });
 
+        // Wait a moment to ensure cookies are cleared
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         // Finally, redirect to home page with a full page reload
         setStatus("Redirecting...");
-
-        // Use a timestamp to prevent caching
-        const timestamp = new Date().getTime();
-        window.location.href = `/?t=${timestamp}`;
+        window.location.href = "/?t=" + Date.now(); // Add timestamp to prevent caching
       } catch (error) {
         console.error("Error during logout:", error);
         // Force redirect as a last resort
@@ -50,11 +41,14 @@ export default function LogoutPage() {
     };
 
     performLogout();
-  }, [router]);
+  }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
+        <div className="flex justify-center mb-6">
+          <Logo />
+        </div>
         <h1 className="text-2xl font-bold mb-4">Uitloggen...</h1>
         <p className="mb-4">{status}</p>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
