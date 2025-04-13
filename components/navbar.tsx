@@ -25,30 +25,8 @@ export function Navbar() {
   }
 
   const handleSignOut = () => {
-    // Clear all auth-related cookies
-    document.cookie =
-      "next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "next-auth.csrf-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "__Secure-next-auth.csrf-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "next-auth.callback-url=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    document.cookie =
-      "__Secure-next-auth.callback-url=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-
-    // Use the API route for more reliable logout
-    fetch("/api/logout")
-      .then(() => {
-        // Force a full page reload to clear any in-memory state
-        window.location.href = "/";
-      })
-      .catch(() => {
-        // Fallback if the API call fails
-        window.location.href = "/";
-      });
+    // Navigate to the dedicated logout page
+    router.push("/logout");
   };
 
   return (

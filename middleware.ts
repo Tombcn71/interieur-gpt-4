@@ -15,14 +15,16 @@ export async function middleware(request: NextRequest) {
 
       // If the user is not authenticated, redirect to the login page
       if (!token) {
+        console.log("No token found, redirecting to login");
         const url = new URL("/login", request.url);
         url.searchParams.set("callbackUrl", encodeURI(pathname));
         return NextResponse.redirect(url);
       }
     } catch (error) {
       console.error("Error in middleware:", error);
-      // If there's an error, still allow the request to proceed
-      // The page's server component can handle authentication as a fallback
+      // If there's an error, redirect to login as a safety measure
+      const url = new URL("/login", request.url);
+      return NextResponse.redirect(url);
     }
   }
 
