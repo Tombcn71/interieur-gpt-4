@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { LoginForm } from "@/components/login-form";
 import { GoogleOAuthGuide } from "@/components/google-oauth-guide";
 import { GoogleConfigChecker } from "@/components/google-config-checker";
+import { Logo } from "@/components/logo";
 
 export const metadata: Metadata = {
   title: "Inloggen - InterieurGPT",
@@ -31,6 +32,9 @@ export default async function LoginPage() {
 
   return (
     <>
+      <div className="absolute top-8 left-8">
+        <Logo />
+      </div>
       <LoginForm />
       {isDevelopment && (
         <>
