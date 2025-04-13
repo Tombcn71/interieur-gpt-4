@@ -2,10 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { createDesign, updateDesignResult, updateUserCredits } from "@/lib/db";
-import {
-  generateInteriorDesignWithControlNet,
-  fallbackGenerateInteriorDesign,
-} from "@/lib/controlnet";
+import { generateInteriorDesign } from "@/lib/reliable-replicate";
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,83 +56,50 @@ export async function POST(req: NextRequest) {
     // Deduct credit
     await updateUserCredits(userId, -1);
 
-    try {
-      // Try to generate the design with ControlNet
-      let outputImageUrl: string | null = null;
-      let modelUsed = "";
-
+    // Start the generation process in the background
+    // This prevents the API route from timing out
+    void (async () => {
       try {
-        console.log(
-          "Attempting to generate design with ControlNet Hough model..."
-        );
-        outputImageUrl = await generateInteriorDesignWithControlNet(
+        console.log("Starting background processing for design:", design.id);
+        const outputImageUrl = await generateInteriorDesign(
           imageUrl,
           roomType,
           style
         );
-        modelUsed = "ControlNet Hough";
-      } catch (controlNetError) {
-        console.error(
-          "ControlNet model error, falling back to SDXL:",
-          controlNetError
-        );
 
-        // If ControlNet fails, use the fallback model
-        outputImageUrl = await fallbackGenerateInteriorDesign(
-          imageUrl,
-          roomType,
-          style
-        );
-        modelUsed = "SDXL (fallback)";
-      }
+        console.log("Generated image URL:", outputImageUrl);
 
-      console.log(`Generated image URL using ${modelUsed}:`, outputImageUrl);
-
-      // Validate the output URL
-      if (!outputImageUrl || typeof outputImageUrl !== "string") {
-        console.error("Invalid output from Replicate:", outputImageUrl);
+        // Validate the output URL
+        if (!outputImageUrl || typeof outputImageUrl !== "string") {
+          console.error("Invalid output from Replicate:", outputImageUrl);
+          await updateDesignResult(design.id, "", "failed");
+        } else {
+          // Update design with result
+          await updateDesignResult(design.id, outputImageUrl, "completed");
+          console.log("Design updated with result:", design.id);
+        }
+      } catch (error) {
+        console.error("Background processing error:", error);
         await updateDesignResult(design.id, "", "failed");
-        return NextResponse.json(
-          {
-            error: "Ongeldige uitvoer ontvangen van de AI service",
-            details: "The AI service returned an invalid output format",
-          },
-          { status: 500 }
-        );
       }
+    })();
 
-      // Update design with result
-      await updateDesignResult(design.id, outputImageUrl, "completed");
-
-      return NextResponse.json({
-        success: true,
-        design: {
-          ...design,
-          result_image_url: outputImageUrl,
-          status: "completed",
-          model_used: modelUsed,
-        },
-      });
-    } catch (replicateError: any) {
-      console.error("Replicate error:", replicateError);
-
-      // Update design status to failed
-      await updateDesignResult(design.id, "", "failed");
-
-      return NextResponse.json(
-        {
-          error:
-            "Er is een fout opgetreden bij het genereren van het ontwerp. Probeer het later opnieuw.",
-          details: replicateError.message || "Unknown Replicate error",
-        },
-        { status: 500 }
-      );
-    }
-  } catch (error: any) {
+    // Return immediately with the design ID
+    return NextResponse.json({
+      success: true,
+      message: "Design creation started",
+      design: {
+        ...design,
+        status: "processing",
+      },
+    });
+  } catch (error) {
     console.error("General error in design API:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
-        error: `Er is een fout opgetreden: ${error.message || "Unknown error"}`,
+        error: `Er is een fout opgetreden: ${errorMessage}`,
         details: error,
       },
       { status: 500 }
