@@ -1,103 +1,53 @@
+import Replicate from "replicate";
+
 /**
  * Simple and direct approach to generate interior designs using Replicate API
- * Optimized for speed and reliability
+ * Using the specialized adirik/interior-design model
  */
 export async function generateInteriorDesign(
   imageUrl: string,
   roomType: string,
   style: string
 ): Promise<string> {
-  const prompt = `Transform this ${roomType} into a beautiful ${style} style interior design. 
-    Make it look professional, realistic, and high-quality. Maintain the same layout and dimensions of the room.`;
+  // Create a more detailed prompt based on the room type and style
+  const prompt = `A ${roomType} with a ${style} style. The room should have appropriate furniture, 
+  decorations, and color scheme that match the ${style} aesthetic while maintaining the same layout and dimensions.`;
 
   console.log(`Generating interior design: ${roomType}, ${style}`);
   console.log(`Using image URL: ${imageUrl}`);
+  console.log(`Using prompt: ${prompt}`);
 
-  // Try with a simpler approach - direct API call
   try {
-    console.log("Using direct API call to Replicate...");
-
-    // Start the prediction with a verified working model
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
-      },
-      body: JSON.stringify({
-        // Use the latest public version of Stable Diffusion v1.5 (verified working)
-        version:
-          "a4a8bcfd6a211c88392c5427ea6c334c9c022b984f7c55e98b1b62db0a7e0b85",
-        input: {
-          prompt: prompt,
-          image: imageUrl,
-          num_outputs: 1,
-          guidance_scale: 7.5,
-          // Reduced steps for faster generation
-          num_inference_steps: 20,
-          strength: 0.7,
-          negative_prompt: "ugly, disfigured, low quality, blurry, nsfw",
-        },
-      }),
+    // Initialize Replicate client
+    const replicate = new Replicate({
+      auth: process.env.REPLICATE_API_TOKEN,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to start prediction:", errorText);
-      throw new Error(`Prediction failed: ${errorText}`);
-    }
-
-    const jsonResponse = await response.json();
-    console.log("Prediction started:", jsonResponse.id);
-
-    const endpointUrl = jsonResponse.urls.get;
-
-    // Poll for the result with shorter intervals
-    for (let i = 0; i < 20; i++) {
-      console.log(`Polling for result... (attempt ${i + 1}/20)`);
-
-      // Wait 1.5 seconds between polls (reduced from 2s)
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const statusResponse = await fetch(endpointUrl, {
-        headers: {
-          Authorization: "Token " + process.env.REPLICATE_API_TOKEN,
+    // Run the specialized interior design model
+    console.log("Starting prediction with adirik/interior-design model...");
+    const output = await replicate.run(
+      "adirik/interior-design:76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38",
+      {
+        input: {
+          image: imageUrl,
+          prompt: prompt,
         },
-      });
-
-      if (!statusResponse.ok) {
-        console.error("Error checking status:", await statusResponse.text());
-        continue;
       }
+    );
 
-      const statusData = await statusResponse.json();
-      console.log(`Poll attempt ${i + 1} status:`, statusData.status);
+    console.log("Model output:", output);
 
-      if (statusData.status === "succeeded") {
-        const output = Array.isArray(statusData.output)
-          ? statusData.output[0]
-          : statusData.output;
-
-        if (output && typeof output === "string") {
-          console.log("Generation succeeded:", output);
-          return output;
-        } else {
-          throw new Error(
-            `Invalid output format: ${JSON.stringify(statusData.output)}`
-          );
-        }
-      } else if (statusData.status === "failed") {
-        throw new Error(
-          `Generation failed: ${statusData.error || "Unknown error"}`
-        );
-      }
-      // If still processing, continue polling
+    // Handle different output formats
+    if (typeof output === "string") {
+      return output;
+    } else if (Array.isArray(output) && output.length > 0) {
+      return output[0];
+    } else {
+      console.error("Unexpected output format:", output);
+      throw new Error("Unexpected output format from model");
     }
-
-    // If we get here, polling timed out
-    throw new Error("Generation timed out after 20 attempts");
   } catch (error) {
     console.error("Error generating interior design:", error);
-    throw error; // Re-throw to be handled by the caller
+    throw error;
   }
 }
