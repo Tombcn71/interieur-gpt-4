@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { checkReplicateConfig } from "@/lib/replicate";
+import { checkReplicateConfig } from "@/lib/controlnet";
 import { safeStringify } from "@/lib/debug-utils";
 
 export async function GET() {
   try {
+    // Use the simpler check method that doesn't try to verify specific models
     const result = await checkReplicateConfig();
 
     return NextResponse.json({
