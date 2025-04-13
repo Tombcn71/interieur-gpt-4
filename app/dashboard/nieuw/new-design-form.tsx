@@ -29,31 +29,21 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
   const router = useRouter();
   const { data: session, status, update } = useSession();
 
-  // Always use the latest credits from the session
-  useEffect(() => {
-    if (session?.user?.credits !== undefined) {
-      setCredits(session.user.credits);
-    }
-  }, [session?.user?.credits]);
-
   // Use a normalized credits value (never negative)
   const normalizedCredits = credits < 0 ? 0 : credits;
 
-  // Reset error state when credits change
+  // Update credits when session changes
   useEffect(() => {
-    // If we have credits, reset the error state
-    if (normalizedCredits > 0 && needsCredits) {
-      setNeedsCredits(false);
-      setError(null);
-    }
-  }, [normalizedCredits, needsCredits]);
+    if (session?.user?.credits !== undefined) {
+      setCredits(session.user.credits);
 
-  // Refresh session when component mounts to ensure we have the latest credits
-  useEffect(() => {
-    if (status === "authenticated") {
-      update();
+      // Reset error state if we now have credits
+      if (session.user.credits > 0 && needsCredits) {
+        setNeedsCredits(false);
+        setError(null);
+      }
     }
-  }, [status, update]);
+  }, [session, needsCredits]);
 
   const handleSubmit = async () => {
     if (!imageUrl) {
@@ -179,7 +169,7 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
           </div>
 
           {error && (
-            <Alert variant="warning">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Fout</AlertTitle>
               <AlertDescription>
@@ -196,7 +186,7 @@ export function NewDesignForm({ credits: initialCredits }: NewDesignFormProps) {
           )}
 
           {normalizedCredits <= 0 && !error && (
-            <Alert variant="warning">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Niet genoeg credits</AlertTitle>
               <AlertDescription>
