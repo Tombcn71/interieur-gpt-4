@@ -61,8 +61,8 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick actions section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {/* Quick actions section - verborgen op mobiel */}
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
               <h2 className="text-xl font-semibold mb-3 text-blue-700">
                 Nieuw ontwerp maken
@@ -109,6 +109,16 @@ export default async function DashboardPage() {
                 </Link>
               </Button>
             </div>
+          </div>
+
+          {/* Mobiele "Koop credits" knop - alleen zichtbaar op mobiel */}
+          <div className="md:hidden mb-10">
+            <Button asChild className="w-full py-6 text-base rounded-xl">
+              <Link href="/dashboard/credits">
+                <CreditCard className="mr-2 h-5 w-5" />
+                Koop credits
+              </Link>
+            </Button>
           </div>
 
           {/* Designs section with clear heading */}
