@@ -1,10 +1,19 @@
 import type React from "react";
-import { ClientAuthCheck } from "@/components/client-auth-check";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ClientAuthCheck>{children}</ClientAuthCheck>;
+  // Check if user is authenticated
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  return <>{children}</>;
 }

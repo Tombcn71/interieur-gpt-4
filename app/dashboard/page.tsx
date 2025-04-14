@@ -1,39 +1,40 @@
 import { Button } from "@/components/ui/button";
 import { DesignCard } from "@/components/design-card";
 import Link from "next/link";
-import { getUserDesigns } from "@/lib/db";
+import { getUserDesigns, getUserById } from "@/lib/db";
 import { Navbar } from "@/components/navbar";
 import { Zap, ImageIcon, CreditCard } from "lucide-react";
 import type { Design } from "@/types/design";
-import { ClientAuthCheck } from "@/components/client-auth-check";
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  // Get the session token from cookies
-  const cookieStore = cookies();
-  const sessionToken =
-    (await cookieStore).get("next-auth.session-token")?.value ||
-    (await cookieStore).get("__Secure-next-auth.session-token")?.value;
+  // Get the session properly
+  const session = await getServerSession(authOptions);
 
-  // If no session token, return the client auth check which will handle redirection
-  if (!sessionToken) {
-    return (
-      <ClientAuthCheck>
-        <div />
-      </ClientAuthCheck>
-    );
+  // If no session, redirect to login
+  if (!session) {
+    redirect("/login");
   }
 
-  // Try to get designs, but handle errors gracefully
+  // Get the user ID from the session
+  const userId = String(session.user.id);
+
+  // Get the latest user data from the database
+  const user = await getUserById(userId);
+
+  // Get the user's designs
   let designs: Design[] = [];
   try {
-    // We'll need to get the user ID from somewhere else since we're not using getServerSession
-    // For now, we'll just show an empty list if we can't get designs
-    designs = await getUserDesigns("placeholder"); // This will be replaced with actual logic
+    designs = await getUserDesigns(userId);
   } catch (error) {
     console.error("Error fetching designs:", error);
-    // We'll continue with an empty designs array
+    // Continue with an empty designs array
   }
+
+  // Get the user's credits
+  const credits = user?.credits || session.user.credits || 0;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -49,7 +50,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="bg-blue-50 text-blue-600 rounded-full px-4 py-2 font-medium">
-                Credits: Loading...
+                Credits: {credits}
               </div>
               <Button asChild className="rounded-full">
                 <Link href="/dashboard/nieuw">
@@ -153,11 +154,7 @@ export default async function DashboardPage() {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {designs.map((design) => (
-                    <Link
-                      key={design.id}
-                      href={`/dashboard/ontwerp/${design.id}`}>
-                      <DesignCard design={design} />
-                    </Link>
+                    <DesignCard key={design.id} design={design} />
                   ))}
                 </div>
 
