@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
-import { BookOpen } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 export function HomeHeader() {
   // Don't use useSession at all - check cookies directly
@@ -37,6 +37,11 @@ export function HomeHeader() {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle logout
+  const handleLogout = () => {
+    window.location.href = "/logout?t=" + Date.now();
+  };
+
   // Don't render anything until we've checked
   if (isLoading) {
     return (
@@ -53,14 +58,18 @@ export function HomeHeader() {
     <header className="border-b">
       <div className="container px-4 sm:px-6 flex h-16 items-center justify-between">
         <Logo />
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center">
           {!isLoggedIn ? (
             <Button asChild className="rounded-full">
               <Link href="/login">Login</Link>
             </Button>
           ) : (
-            <Button asChild className="rounded-full">
-              <Link href="/dashboard">Dashboard</Link>
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              className="rounded-full">
+              <LogOut className="mr-2 h-4 w-4" />
+              Uitloggen
             </Button>
           )}
         </div>
