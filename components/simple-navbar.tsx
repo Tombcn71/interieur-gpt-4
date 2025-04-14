@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, CreditCard, Zap } from "lucide-react";
+import { LogOut, Home, CreditCard, Zap, BookOpen } from "lucide-react";
 import { Logo } from "@/components/logo";
 
 export function SimpleNavbar() {
@@ -44,6 +44,12 @@ export function SimpleNavbar() {
               className="text-sm font-medium transition-colors hover:text-primary">
               <CreditCard className="inline-block mr-1 h-4 w-4" />
               Credits
+            </Link>
+            <Link
+              href="/stijlgids"
+              className="text-sm font-medium transition-colors hover:text-primary">
+              <BookOpen className="inline-block mr-1 h-4 w-4" />
+              Stijlgids
             </Link>
           </nav>
         </div>

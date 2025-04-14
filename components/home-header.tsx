@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
+import { BookOpen } from "lucide-react";
 
 export function HomeHeader() {
   // Don't use useSession at all - check cookies directly
@@ -52,15 +53,17 @@ export function HomeHeader() {
     <header className="border-b">
       <div className="container px-4 sm:px-6 flex h-16 items-center justify-between">
         <Logo />
-        {!isLoggedIn ? (
-          <Button asChild className="rounded-full">
-            <Link href="/login">Login</Link>
-          </Button>
-        ) : (
-          <Button asChild className="rounded-full">
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
-        )}
+        <div className="flex items-center space-x-4">
+          {!isLoggedIn ? (
+            <Button asChild className="rounded-full">
+              <Link href="/login">Login</Link>
+            </Button>
+          ) : (
+            <Button asChild className="rounded-full">
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

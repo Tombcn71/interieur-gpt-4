@@ -1,177 +1,157 @@
-import { Button } from "@/components/ui/button";
-import { DesignCard } from "@/components/design-card";
 import Link from "next/link";
-import { getUserDesigns, getUserById } from "@/lib/db";
-import { Navbar } from "@/components/navbar";
-import { Zap, ImageIcon, CreditCard } from "lucide-react";
-import type { Design } from "@/types/design";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { PromoBanner } from "@/components/promo-banner";
+import { MediaLogos } from "@/components/media-logos";
+import { HomeHeader } from "@/components/home-header";
+import { ReviewsSection } from "@/components/reviews-section";
+import { PricingSection } from "@/components/pricing-section";
 
-export default async function DashboardPage() {
-  // Get the session properly
-  const session = await getServerSession(authOptions);
-
-  // If no session, redirect to login
-  if (!session) {
-    redirect("/login");
-  }
-
-  // Get the user ID from the session
-  const userId = String(session.user.id);
-
-  // Get the latest user data from the database
-  const user = await getUserById(userId);
-
-  // Get the user's designs
-  let designs: Design[] = [];
-  try {
-    designs = await getUserDesigns(userId);
-  } catch (error) {
-    console.error("Error fetching designs:", error);
-    // Continue with an empty designs array
-  }
-
-  // Get the user's credits
-  const credits = user?.credits || session.user.credits || 0;
-
+export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-1 py-8">
-        <div className="container">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Beheer je interieurontwerpen
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="bg-blue-50 text-blue-600 rounded-full px-4 py-2 font-medium">
-                Credits: {credits}
-              </div>
-              <Button asChild className="rounded-full">
-                <Link href="/dashboard/nieuw">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Nieuw ontwerp
-                </Link>
-              </Button>
-            </div>
-          </div>
+      <PromoBanner />
 
-          {/* Quick actions section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
-              <h2 className="text-xl font-semibold mb-3 text-blue-700">
-                Nieuw ontwerp maken
-              </h2>
-              <p className="text-blue-600 mb-4">
-                Upload een foto van je kamer en transformeer het met AI.
-              </p>
-              <Button asChild className="w-full">
-                <Link href="/dashboard/nieuw">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Start nieuw ontwerp
-                </Link>
-              </Button>
-            </div>
+      <HomeHeader />
 
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold mb-3">
-                Bekijk je ontwerpen
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                {designs.length > 0
-                  ? `Je hebt ${designs.length} ontwerp${
-                      designs.length !== 1 ? "en" : ""
-                    }.`
-                  : "Je hebt nog geen ontwerpen gemaakt."}
-              </p>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="#ontwerpen">
-                  <ImageIcon className="mr-2 h-4 w-4" />
-                  Bekijk ontwerpen
-                </Link>
-              </Button>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold mb-3">Credits kopen</h2>
-              <p className="text-muted-foreground mb-4">
-                Koop credits om meer ontwerpen te maken.
-              </p>
-              <Button asChild className="w-full">
-                <Link href="/dashboard/credits">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Koop credits
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Designs section with clear heading */}
-          <div id="ontwerpen" className="mt-12">
-            <h2 className="text-2xl font-bold mb-6 flex items-center">
-              <ImageIcon className="mr-2 h-5 w-5" />
-              Jouw ontwerpen
-            </h2>
-
-            {designs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-xl border border-gray-100">
-                <div className="rounded-full bg-blue-50 p-6 mb-4">
-                  <svg
-                    className="h-10 w-10 text-blue-500"
-                    fill="none"
-                    height="24"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 7v6h-6" />
-                    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-semibold mb-2">
-                  Geen ontwerpen gevonden
-                </h2>
-                <p className="text-muted-foreground max-w-[500px] mb-4">
-                  Je hebt nog geen interieurontwerpen gemaakt. Begin met het
-                  maken van je eerste ontwerp.
-                </p>
-                <Button asChild className="rounded-full">
-                  <Link href="/dashboard/nieuw">
-                    <Zap className="mr-2 h-4 w-4" />
-                    Maak je eerste ontwerp
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {designs.map((design) => (
-                    <DesignCard key={design.id} design={design} />
-                  ))}
+      <main className="flex-1">
+        {/* Hero Section - Improved for mobile */}
+        <section className="py-12 md:py-20 lg:py-28">
+          <div className="container px-4 sm:px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+              <div className="space-y-6 text-center lg:text-left">
+                <div className="inline-block bg-gray-100 rounded-full px-4 py-2 text-sm">
+                  Gebruikt door meer dan{" "}
+                  <span className="text-blue-500 font-medium">1000 mensen</span>
                 </div>
 
-                {/* Clear navigation to create new design */}
-                <div className="mt-8 text-center">
-                  <Button asChild className="rounded-full">
-                    <Link href="/dashboard/nieuw">
-                      <Zap className="mr-2 h-4 w-4" />
-                      Maak nog een ontwerp
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+                  Jouw persoonlijke <span className="text-blue-500">AI</span>{" "}
+                  <br className="hidden sm:inline" />
+                  interieurontwerper
+                </h1>
+
+                <div className="pt-2 md:pt-4 flex flex-col sm:flex-row gap-3">
+                  <Button
+                    size="lg"
+                    asChild
+                    className="rounded-full h-12 md:h-14 px-6 md:px-8 text-base md:text-lg">
+                    <Link href="/login">
+                      Herontwerp je kamer
+                      <svg
+                        className="ml-2 h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                    </Link>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    asChild
+                    className="rounded-full h-12 md:h-14 px-6 md:px-8 text-base md:text-lg">
+                    <Link href="/stijlgids">
+                      Bekijk stijlgids
+                      <svg
+                        className="ml-2 h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
                     </Link>
                   </Button>
                 </div>
-              </>
-            )}
+              </div>
+
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white mx-auto max-w-md lg:max-w-none w-full">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src="/images/hero-interior.jpg"
+                    alt="Modern interior design"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-4 py-1 font-medium text-sm">
+                    AI-gegenereerd interieur
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Reviews Section */}
+        <ReviewsSection />
+
+        {/* Pricing Section */}
+        <PricingSection />
+
+        {/* Media Logos */}
+        <section className="py-16 bg-gray-50">
+          <div className="container px-4 sm:px-6">
+            <MediaLogos />
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 bg-blue-500 text-white">
+          <div className="container px-4 sm:px-6 text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+              Klaar om je ruimte te transformeren?
+            </h2>
+            <p className="text-lg sm:text-xl mb-8 max-w-[600px] mx-auto">
+              Begin vandaag nog met het herontwerpen van je interieur met onze
+              AI-technologie.
+            </p>
+            <Button
+              size="lg"
+              variant="secondary"
+              asChild
+              className="rounded-full h-12 md:h-14 px-6 md:px-8 text-base md:text-lg">
+              <Link href="/login">Begin nu</Link>
+            </Button>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t py-8">
+        <div className="container px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-4 md:mb-0">
+            <p className="text-sm text-muted-foreground">
+              © 2023 InterieurGPT. Alle rechten voorbehouden.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-6 justify-center">
+            <Link
+              href="/privacy"
+              className="text-sm text-muted-foreground hover:text-foreground">
+              Privacybeleid
+            </Link>
+            <Link
+              href="/voorwaarden"
+              className="text-sm text-muted-foreground hover:text-foreground">
+              Gebruiksvoorwaarden
+            </Link>
+            <Link
+              href="/contact"
+              className="text-sm text-muted-foreground hover:text-foreground">
+              Contact
+            </Link>
           </div>
         </div>
-      </main>
+      </footer>
     </div>
   );
 }

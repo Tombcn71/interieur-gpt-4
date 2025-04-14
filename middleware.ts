@@ -5,8 +5,12 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for API routes and login page
-  if (pathname.startsWith("/api") || pathname === "/login") {
+  // Skip middleware for API routes, login page, and stijlgids page
+  if (
+    pathname.startsWith("/api") ||
+    pathname === "/login" ||
+    pathname === "/stijlgids"
+  ) {
     return NextResponse.next();
   }
 

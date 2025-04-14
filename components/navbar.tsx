@@ -11,7 +11,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, CreditCard, LogOut, Menu, X, Zap, User } from "lucide-react";
+import {
+  Home,
+  CreditCard,
+  LogOut,
+  Menu,
+  X,
+  Zap,
+  User,
+  BookOpen,
+} from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
 
@@ -68,6 +77,16 @@ export function Navbar() {
               }`}>
               <CreditCard className="inline-block mr-1 h-4 w-4" />
               Credits
+            </Link>
+            <Link
+              href="/stijlgids"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                pathname === "/stijlgids"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              }`}>
+              <BookOpen className="inline-block mr-1 h-4 w-4" />
+              Stijlgids
             </Link>
           </nav>
         </div>
@@ -145,6 +164,13 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}>
               <CreditCard className="mr-2 h-4 w-4" />
               Credits
+            </Link>
+            <Link
+              href="/stijlgids"
+              className="text-sm font-medium transition-colors hover:text-primary flex items-center"
+              onClick={() => setMobileMenuOpen(false)}>
+              <BookOpen className="mr-2 h-4 w-4" />
+              Stijlgids
             </Link>
             <button
               onClick={handleSignOut}
