@@ -53,17 +53,14 @@ export default async function DashboardPage() {
                 <div className="bg-blue-50 text-blue-600 rounded-full px-4 py-2 font-medium">
                   Credits: {credits}
                 </div>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="flex-1 md:flex-initial">
+                <Button asChild variant="outline" className="flex-1 md:hidden">
                   <Link href="/dashboard/credits">
                     <CreditCard className="mr-2 h-4 w-4" />
                     Koop credits
                   </Link>
                 </Button>
               </div>
-              <Button asChild className="rounded-full w-full">
+              <Button asChild className="rounded-full w-full md:hidden">
                 <Link href="/dashboard/nieuw">
                   <Zap className="mr-2 h-4 w-4" />
                   Nieuw ontwerp
