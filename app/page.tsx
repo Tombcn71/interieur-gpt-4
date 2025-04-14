@@ -10,8 +10,6 @@ import { FAQSection } from "@/components/faq-section";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <PromoBanner />
-
       <HomeHeader />
 
       <main className="flex-1">
