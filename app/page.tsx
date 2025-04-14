@@ -16,6 +16,7 @@ export default function Home() {
 
       <main className="flex-1">
         {/* Hero Section - Improved for mobile */}
+        {/* Hero Section - Improved for mobile */}
         <section className="py-12 md:py-20 lg:py-28">
           <div className="container px-4 sm:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -26,7 +27,9 @@ export default function Home() {
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight">
-                  Jouw persoonlijke <span className="text-blue-500">AI</span>{" "}
+                  <span className="whitespace-nowrap">
+                    Jouw persoonlijke <span className="text-blue-500">AI</span>
+                  </span>{" "}
                   <br className="hidden sm:inline" />
                   interieurontwerper
                 </h1>
@@ -79,7 +82,7 @@ export default function Home() {
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white mx-auto max-w-md lg:max-w-none w-full">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src="/images/hero.png"
+                    src="/images/hero-interior.jpg"
                     alt="Modern interior design"
                     className="w-full h-full object-cover"
                   />
