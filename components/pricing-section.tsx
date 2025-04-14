@@ -17,7 +17,7 @@ export function PricingSection() {
     {
       id: "basic",
       name: "Basis",
-      price: "€9,99",
+      price: "€4,99",
       description: "Perfect voor een kleine ruimte",
       features: [
         "5 AI-gegenereerde ontwerpen",
@@ -30,7 +30,7 @@ export function PricingSection() {
     {
       id: "standard",
       name: "Standaard",
-      price: "€24,99",
+      price: "€9,99",
       description: "Ideaal voor meerdere kamers",
       features: [
         "15 AI-gegenereerde ontwerpen",
@@ -45,7 +45,7 @@ export function PricingSection() {
     {
       id: "premium",
       name: "Premium",
-      price: "€49,99",
+      price: "€19,99",
       description: "Voor het hele huis",
       features: [
         "50 AI-gegenereerde ontwerpen",
