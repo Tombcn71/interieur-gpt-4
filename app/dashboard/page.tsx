@@ -1,166 +1,195 @@
-import { Button } from "@/components/ui/button";
-import { DesignCard } from "@/components/design-card";
-import Link from "next/link";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { getUserDesigns, getUserById } from "@/lib/db";
-import { AuthCheck } from "@/components/auth-check";
 import { Navbar } from "@/components/navbar";
-import { Zap, ImageIcon, CreditCard } from "lucide-react";
-import type { Design } from "@/types/design";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { getServerSession } from "next-auth/next";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
+import { getDesignById } from "@/lib/db";
+import Link from "next/link";
+import { formatDate } from "@/lib/utils";
+import { AuthCheck } from "@/components/auth-check";
+import { ArrowLeft, Zap, Home, Download } from "lucide-react";
+import { SimpleDeleteButton } from "@/components/simple-delete-button";
 
-export default async function DashboardPage() {
+export default async function DesignDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
     return <AuthCheck>{null}</AuthCheck>;
   }
 
-  const userId = String(session.user.id);
+  const design = await getDesignById(params.id);
 
-  // Get the latest user data from the database
-  const user = await getUserById(userId);
-  const credits = user?.credits || session.user.credits || 0;
+  if (!design) {
+    console.log(`Design ${params.id} not found`);
+    redirect("/dashboard");
+  }
 
-  const designs: Design[] = await getUserDesigns(session.user.id);
+  if (design.user_id !== Number.parseInt(session.user.id)) {
+    console.log(
+      `User ${session.user.id} does not own design ${params.id} (owned by ${design.user_id})`
+    );
+    redirect("/dashboard");
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1 py-8">
-        <div className="container">
+        <div className="container max-w-5xl">
+          {/* Breadcrumb navigation */}
+          <div className="flex items-center text-sm text-muted-foreground mb-4">
+            <Link
+              href="/dashboard"
+              className="hover:text-foreground flex items-center">
+              <Home className="h-3.5 w-3.5 mr-1" />
+              Dashboard
+            </Link>
+            <span className="mx-2">/</span>
+            <span>Ontwerp details</span>
+          </div>
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Dashboard</h1>
+              <h1 className="text-3xl font-bold capitalize">
+                {design.room_type} - {design.style}
+              </h1>
               <p className="text-muted-foreground">
-                Beheer je interieurontwerpen
+                Gemaakt op {formatDate(design.created_at)}
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="bg-blue-50 text-blue-600 rounded-full px-4 py-2 font-medium">
-                Credits: {credits}
-              </div>
-              <Button asChild className="rounded-full">
-                <Link href="/dashboard/nieuw">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Nieuw ontwerp
+            <div className="flex gap-3">
+              <Button variant="outline" asChild className="flex items-center">
+                <Link href="/dashboard">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Terug naar dashboard
                 </Link>
               </Button>
+              <SimpleDeleteButton designId={design.id} />
             </div>
           </div>
 
-          {/* Quick actions section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
-              <h2 className="text-xl font-semibold mb-3 text-blue-700">
-                Nieuw ontwerp maken
-              </h2>
-              <p className="text-blue-600 mb-4">
-                Upload een foto van je kamer en transformeer het met AI.
-              </p>
-              <Button asChild className="w-full">
-                <Link href="/dashboard/nieuw">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Start nieuw ontwerp
-                </Link>
-              </Button>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold mb-3">
-                Bekijk je ontwerpen
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                {designs.length > 0
-                  ? `Je hebt ${designs.length} ontwerp${
-                      designs.length !== 1 ? "en" : ""
-                    }.`
-                  : "Je hebt nog geen ontwerpen gemaakt."}
-              </p>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="#ontwerpen">
-                  <ImageIcon className="mr-2 h-4 w-4" />
-                  Bekijk ontwerpen
-                </Link>
-              </Button>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold mb-3">Credits kopen</h2>
-              <p className="text-muted-foreground mb-4">
-                Je hebt momenteel {credits} credit{credits !== 1 ? "s" : ""}.
-              </p>
-              <Button asChild className="w-full">
-                <Link href="/dashboard/credits">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Koop credits
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Designs section with clear heading */}
-          <div id="ontwerpen" className="mt-12">
-            <h2 className="text-2xl font-bold mb-6 flex items-center">
-              <ImageIcon className="mr-2 h-5 w-5" />
-              Jouw ontwerpen
-            </h2>
-
-            {designs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-xl border border-gray-100">
-                <div className="rounded-full bg-blue-50 p-6 mb-4">
-                  <svg
-                    className="h-10 w-10 text-blue-500"
-                    fill="none"
-                    height="24"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 7v6h-6" />
-                    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
-                  </svg>
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card>
+              <CardContent className="p-0">
+                <div className="relative aspect-square">
+                  <img
+                    src={design.original_image_url || "/placeholder.svg"}
+                    alt="Originele afbeelding"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-4">
+                    <h3 className="font-medium">Originele afbeelding</h3>
+                  </div>
                 </div>
-                <h2 className="text-xl font-semibold mb-2">
-                  Geen ontwerpen gevonden
-                </h2>
-                <p className="text-muted-foreground max-w-[500px] mb-4">
-                  Je hebt nog geen interieurontwerpen gemaakt. Begin met het
-                  maken van je eerste ontwerp.
-                </p>
-                <Button asChild className="rounded-full">
-                  <Link href="/dashboard/nieuw">
-                    <Zap className="mr-2 h-4 w-4" />
-                    Maak je eerste ontwerp
-                  </Link>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-0">
+                <div className="relative aspect-square">
+                  {design.result_image_url ? (
+                    <img
+                      src={design.result_image_url || "/placeholder.svg"}
+                      alt="Gegenereerd ontwerp"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <div className="text-center p-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-muted-foreground">
+                          Ontwerp wordt gegenereerd...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-4 flex justify-between items-center">
+                    <h3 className="font-medium">Gegenereerd ontwerp</h3>
+                    {design.result_image_url && (
+                      <a
+                        href={design.result_image_url}
+                        download={`interieurGPT-${design.room_type}-${design.style}.jpg`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 flex items-center">
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-8">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-medium mb-2">Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foregroun">Kamertype</p>
+                    <p className="font-medium capitalize">{design.room_type}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Stijl</p>
+                    <p className="font-medium capitalize">{design.style}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <p className="font-medium capitalize">
+                      {design.status === "completed"
+                        ? "Voltooid"
+                        : "In behandeling"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Prompt</p>
+                    <p className="font-medium">{design.prompt}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Clear navigation options */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-between">
+            <div className="flex gap-3">
+              <Button variant="outline" asChild className="flex-1 sm:flex-none">
+                <Link href="/dashboard">
+                  <Home className="mr-2 h-4 w-4" />
+                  Terug naar dashboard
+                </Link>
+              </Button>
+              <Button asChild className="flex-1 sm:flex-none">
+                <Link href="/dashboard/nieuw">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Maak nog een ontwerp
+                </Link>
+              </Button>
+            </div>
+            <div className="flex gap-3 mt-4 sm:mt-0">
+              {design.result_image_url && (
+                <Button
+                  variant="outline"
+                  asChild
+                  className="flex-1 sm:flex-none">
+                  <a
+                    href={design.result_image_url}
+                    download={`interieurGPT-${design.room_type}-${design.style}.jpg`}
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download ontwerp
+                  </a>
                 </Button>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {designs.map((design) => (
-                    <Link
-                      key={design.id}
-                      href={`/dashboard/ontwerp/${design.id}`}>
-                      <DesignCard design={design} />
-                    </Link>
-                  ))}
-                </div>
-
-                {/* Clear navigation to create new design */}
-                <div className="mt-8 text-center">
-                  <Button asChild className="rounded-full">
-                    <Link href="/dashboard/nieuw">
-                      <Zap className="mr-2 h-4 w-4" />
-                      Maak nog een ontwerp
-                    </Link>
-                  </Button>
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </main>
