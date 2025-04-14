@@ -48,16 +48,27 @@ export default async function DashboardPage() {
                 Beheer je interieurontwerpen
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="bg-blue-50 text-blue-600 rounded-full px-4 py-2 font-medium">
                 Credits: {credits}
               </div>
-              <Button asChild className="rounded-full">
-                <Link href="/dashboard/nieuw">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Nieuw ontwerp
-                </Link>
-              </Button>
+              <div className="flex gap-2 flex-1 md:flex-initial">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="flex-1 md:flex-initial">
+                  <Link href="/dashboard/credits">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Koop credits
+                  </Link>
+                </Button>
+                <Button asChild className="rounded-full flex-1 md:flex-initial">
+                  <Link href="/dashboard/nieuw">
+                    <Zap className="mr-2 h-4 w-4" />
+                    Nieuw ontwerp
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -109,16 +120,6 @@ export default async function DashboardPage() {
                 </Link>
               </Button>
             </div>
-          </div>
-
-          {/* Mobiele "Koop credits" knop - alleen zichtbaar op mobiel */}
-          <div className="md:hidden mb-10">
-            <Button asChild className="w-full py-6 text-base rounded-xl">
-              <Link href="/dashboard/credits">
-                <CreditCard className="mr-2 h-5 w-5" />
-                Koop credits
-              </Link>
-            </Button>
           </div>
 
           {/* Designs section with clear heading */}
