@@ -24,15 +24,16 @@ export function LoginForm({ callbackUrl, error }: LoginFormProps) {
     // Only redirect if authenticated and we haven't attempted a redirect yet
     if (status === "authenticated" && session && !redirectAttempted) {
       setRedirectAttempted(true);
+      console.log(
+        "User is authenticated, redirecting to:",
+        callbackUrl || "/dashboard"
+      );
 
-      // Use a timeout to prevent immediate redirect which can cause loops
-      const redirectTimer = setTimeout(() => {
-        router.push(callbackUrl || "/dashboard");
-      }, 100);
-
-      return () => clearTimeout(redirectTimer);
+      // Use a direct window location change instead of Next.js router
+      // This is more forceful and should break any potential loops
+      window.location.href = callbackUrl || "/dashboard";
     }
-  }, [session, status, router, callbackUrl, redirectAttempted]);
+  }, [session, status, callbackUrl, redirectAttempted]);
 
   const handleGoogleSignIn = async () => {
     if (isLoading) return;
