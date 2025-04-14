@@ -9,6 +9,7 @@ import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { AuthCheck } from "@/components/auth-check";
 import { ArrowLeft, Zap, Home, Download } from "lucide-react";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 
 export default async function DesignDetailPage({
   params,
@@ -154,19 +155,42 @@ export default async function DesignDetailPage({
           </div>
 
           {/* Clear navigation options */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="outline" asChild className="flex-1 sm:flex-none">
-              <Link href="/dashboard">
-                <Home className="mr-2 h-4 w-4" />
-                Terug naar dashboard
-              </Link>
-            </Button>
-            <Button asChild className="flex-1 sm:flex-none">
-              <Link href="/dashboard/nieuw">
-                <Zap className="mr-2 h-4 w-4" />
-                Maak nog een ontwerp
-              </Link>
-            </Button>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-between">
+            <div className="flex gap-3">
+              <Button variant="outline" asChild className="flex-1 sm:flex-none">
+                <Link href="/dashboard">
+                  <Home className="mr-2 h-4 w-4" />
+                  Terug naar dashboard
+                </Link>
+              </Button>
+              <Button asChild className="flex-1 sm:flex-none">
+                <Link href="/dashboard/nieuw">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Maak nog een ontwerp
+                </Link>
+              </Button>
+            </div>
+            <div className="flex gap-3 mt-4 sm:mt-0">
+              {design.result_image_url && (
+                <Button
+                  variant="outline"
+                  asChild
+                  className="flex-1 sm:flex-none">
+                  <a
+                    href={design.result_image_url}
+                    download={`interieurGPT-${design.room_type}-${design.style}.jpg`}
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download ontwerp
+                  </a>
+                </Button>
+              )}
+              <DeleteConfirmationDialog
+                designId={design.id}
+                designName={`${design.room_type} - ${design.style}`}
+              />
+            </div>
           </div>
         </div>
       </main>

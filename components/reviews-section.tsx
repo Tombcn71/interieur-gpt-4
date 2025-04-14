@@ -45,7 +45,8 @@ export function ReviewsSection() {
       <div className="container px-4 sm:px-6">
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3 md:mb-4">
-            Wat onze gebruikers zeggen
+            Geliefd door vele{" "}
+            <span className="text-blue-500">Nederlanders</span>
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Duizenden mensen hebben hun interieur al getransformeerd met

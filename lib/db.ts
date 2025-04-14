@@ -289,6 +289,44 @@ export async function getDesignById(id: string): Promise<Design | null> {
   }
 }
 
+// Add this new function after the getDesignById function
+
+export async function deleteDesign(designId: string, userId: string) {
+  try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is not configured");
+    }
+
+    // Convert userId to a number if it's a string
+    const userIdNum = Number.parseInt(userId, 10);
+
+    if (isNaN(userIdNum)) {
+      throw new Error(`Invalid user ID: ${userId}`);
+    }
+
+    // First check if the design exists and belongs to the user
+    const [design] = await sql`
+      SELECT * FROM designs 
+      WHERE id = ${designId} AND user_id = ${userIdNum}
+    `;
+
+    if (!design) {
+      throw new Error("Design not found or does not belong to the user");
+    }
+
+    // Delete the design
+    await sql`
+      DELETE FROM designs
+      WHERE id = ${designId} AND user_id = ${userIdNum}
+    `;
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting design:", error);
+    throw error;
+  }
+}
+
 export async function createPayment(
   userId: string,
   stripePaymentId: string,

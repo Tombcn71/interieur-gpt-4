@@ -29,7 +29,10 @@ export default function Home() {
                   <br className="hidden sm:inline" />
                   interieurontwerper
                 </h1>
-
+                <p className="text-lg">
+                  Upload een foto, selecteer type en stijl. <br /> Onze AI
+                  ontwerpt je nieuwe ruimte.
+                </p>
                 <div className="pt-2 md:pt-4">
                   <Button
                     size="lg"
@@ -69,53 +72,11 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* How it works section */}
-        <section className="py-16 bg-gray-50">
-          <div className="container px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              Hoe het werkt
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 font-bold text-xl">
-                  1
-                </div>
-                <h3 className="text-xl font-medium mb-2">Upload je foto</h3>
-                <p className="text-muted-foreground">
-                  Upload een foto van je huidige kamer die je wilt
-                  transformeren.
-                </p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 font-bold text-xl">
-                  2
-                </div>
-                <h3 className="text-xl font-medium mb-2">Kies je stijl</h3>
-                <p className="text-muted-foreground">
-                  Selecteer het kamertype en de interieurstijl die je wilt voor
-                  je nieuwe ruimte.
-                </p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sm:col-span-2 md:col-span-1">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 font-bold text-xl">
-                  3
-                </div>
-                <h3 className="text-xl font-medium mb-2">Ontvang je ontwerp</h3>
-                <p className="text-muted-foreground">
-                  Onze AI genereert een prachtig nieuw interieurontwerp voor je
-                  kamer.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Reviews Section */}
+        <ReviewsSection />
 
         {/* Pricing Section */}
         <PricingSection />
-
-        {/* Reviews Section */}
-        <ReviewsSection />
 
         {/* Media Logos */}
         <section className="py-16 bg-gray-50">
