@@ -12,13 +12,13 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-14 sm:h-16 items-center justify-between">
         <Logo />
         <Button
           onClick={handleLogout}
-          className="flex items-center rounded-full">
-          <LogOut className="mr-2 h-4 w-4" />
-          Uitloggen
+          className="flex items-center rounded-full text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4">
+          <LogOut className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+          <span>Uitloggen</span>
         </Button>
       </div>
     </header>

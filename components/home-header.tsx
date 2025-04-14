@@ -46,7 +46,7 @@ export function HomeHeader() {
   if (isLoading) {
     return (
       <header className="border-b">
-        <div className="container px-4 sm:px-6 flex h-16 items-center justify-between">
+        <div className="container px-4 sm:px-6 flex h-14 sm:h-16 items-center justify-between">
           <Logo />
           {/* Show nothing while loading */}
         </div>
@@ -56,19 +56,21 @@ export function HomeHeader() {
 
   return (
     <header className="border-b">
-      <div className="container px-4 sm:px-6 flex h-16 items-center justify-between">
+      <div className="container px-4 sm:px-6 flex h-14 sm:h-16 items-center justify-between">
         <Logo />
         <div>
           {!isLoggedIn ? (
-            <Button asChild className="rounded-full">
+            <Button
+              asChild
+              className="rounded-full text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4">
               <Link href="/login">Login</Link>
             </Button>
           ) : (
             <Button
               onClick={handleLogout}
               variant="destructive"
-              className="rounded-full">
-              <LogOut className="mr-2 h-4 w-4" />
+              className="rounded-full text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4">
+              <LogOut className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               Uitloggen
             </Button>
           )}
