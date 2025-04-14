@@ -24,7 +24,15 @@ export default async function DesignDetailPage({
 
   const design = await getDesignById(params.id);
 
-  if (!design || design.user_id !== Number.parseInt(session.user.id)) {
+  if (!design) {
+    console.log(`Design ${params.id} not found`);
+    redirect("/dashboard");
+  }
+
+  if (design.user_id !== Number.parseInt(session.user.id)) {
+    console.log(
+      `User ${session.user.id} does not own design ${params.id} (owned by ${design.user_id})`
+    );
     redirect("/dashboard");
   }
 

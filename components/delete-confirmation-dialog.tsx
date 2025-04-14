@@ -17,11 +17,13 @@ import { useToast } from "@/hooks/use-toast";
 interface DeleteConfirmationDialogProps {
   designId: string;
   designName: string;
+  onDeleted?: () => void;
 }
 
 export function DeleteConfirmationDialog({
   designId,
   designName,
+  onDeleted,
 }: DeleteConfirmationDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,24 +33,40 @@ export function DeleteConfirmationDialog({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
+      console.log(`Sending delete request for design ${designId}`);
+
       const response = await fetch(`/api/design/${designId}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
+        console.error("Delete response error:", data);
         throw new Error(data.error || "Er is een fout opgetreden");
       }
+
+      console.log("Delete response:", data);
 
       toast({
         title: "Ontwerp verwijderd",
         description: "Het ontwerp is succesvol verwijderd",
       });
 
-      // Close the dialog and redirect to dashboard
+      // Close the dialog
       setIsOpen(false);
-      router.push("/dashboard");
-      router.refresh();
+
+      // Call the onDeleted callback if provided
+      if (onDeleted) {
+        onDeleted();
+      } else {
+        // Otherwise redirect to dashboard
+        router.push("/dashboard");
+        router.refresh();
+      }
     } catch (error) {
       console.error("Error deleting design:", error);
       toast({
@@ -84,6 +102,9 @@ export function DeleteConfirmationDialog({
           </DialogHeader>
           <div className="py-4">
             <p className="font-medium">{designName}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Design ID: {designId}
+            </p>
           </div>
           <DialogFooter>
             <Button

@@ -291,6 +291,7 @@ export async function getDesignById(id: string): Promise<Design | null> {
 
 // Add this new function after the getDesignById function
 
+// Update the deleteDesign function to be more robust
 export async function deleteDesign(designId: string, userId: string) {
   try {
     if (!process.env.DATABASE_URL) {
@@ -304,6 +305,8 @@ export async function deleteDesign(designId: string, userId: string) {
       throw new Error(`Invalid user ID: ${userId}`);
     }
 
+    console.log(`Deleting design ${designId} for user ${userIdNum}`);
+
     // First check if the design exists and belongs to the user
     const [design] = await sql`
       SELECT * FROM designs 
@@ -311,16 +314,26 @@ export async function deleteDesign(designId: string, userId: string) {
     `;
 
     if (!design) {
+      console.log(
+        `Design ${designId} not found or does not belong to user ${userIdNum}`
+      );
       throw new Error("Design not found or does not belong to the user");
     }
 
     // Delete the design
-    await sql`
+    const result = await sql`
       DELETE FROM designs
       WHERE id = ${designId} AND user_id = ${userIdNum}
+      RETURNING id
     `;
 
-    return { success: true };
+    console.log(`Delete operation result:`, result);
+
+    if (!result || result.length === 0) {
+      throw new Error("Failed to delete design");
+    }
+
+    return { success: true, deletedId: result[0].id };
   } catch (error) {
     console.error("Error deleting design:", error);
     throw error;
