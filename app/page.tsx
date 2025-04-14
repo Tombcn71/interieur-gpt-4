@@ -30,7 +30,7 @@ export default function Home() {
                     Jouw persoonlijke <span className="text-blue-500">AI</span>
                   </span>{" "}
                   <br className="hidden sm:inline" />
-                  interieurontwerper
+                  interieurontwerper✨
                 </h1>
 
                 <div className="pt-2 md:pt-4 space-y-4 sm:space-y-0 sm:flex sm:gap-4">
