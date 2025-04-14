@@ -2,21 +2,39 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
 
-export function LoginForm() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+interface LoginFormProps {
+  callbackUrl?: string;
+  error?: string;
+}
+
+export function LoginForm({ callbackUrl, error }: LoginFormProps) {
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Handle redirection if user is already logged in
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      setIsRedirecting(true);
+      router.push(callbackUrl || "/dashboard");
+    }
+  }, [session, status, router, callbackUrl]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    await signIn("google", { callbackUrl });
+    try {
+      await signIn("google", { callbackUrl: callbackUrl || "/dashboard" });
+    } catch (error) {
+      console.error("Sign in error:", error);
+      setIsLoading(false);
+    }
   };
 
   // Map error codes to user-friendly messages
@@ -27,10 +45,30 @@ export function LoginForm() {
       callback: "De callback URL is ongeldig.",
       default:
         "Er is een fout opgetreden bij het inloggen. Probeer het opnieuw.",
+      session:
+        "Er is een probleem met je sessie. Probeer opnieuw in te loggen.",
     };
 
     return errorMessages[errorCode] || errorMessages.default;
   };
+
+  // If we're redirecting, show a loading state
+  if (isRedirecting) {
+    return (
+      <div className="container flex h-screen w-screen flex-col items-center justify-center">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+          <div className="flex flex-col space-y-2 text-center">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Redirecting...
+            </h1>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">

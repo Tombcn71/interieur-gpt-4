@@ -1,34 +1,37 @@
+"use client";
+
 import type React from "react";
-import { getServerSession } from "next-auth/next";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
 
-export async function AuthCheck({ children }: { children: React.ReactNode }) {
-  try {
-    const session = await getServerSession(authOptions);
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
-    if (!session) {
-      return redirect("/login");
+export function AuthCheck({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    } else if (status === "authenticated") {
+      setIsChecking(false);
     }
+  }, [status, router]);
 
-    return <>{children}</>;
-  } catch (error) {
-    console.error("Error in AuthCheck:", error);
-    // If there's an error checking the session, show a fallback UI
+  if (isChecking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="text-xl font-bold">Session Error</h1>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h1 className="text-xl font-bold">Loading...</h1>
           <p className="text-muted-foreground">
-            There was an error checking your session.
+            Please wait while we check your session.
           </p>
-          <a
-            href="/login"
-            className="mt-4 inline-block text-blue-500 hover:underline">
-            Go to login
-          </a>
         </div>
       </div>
     );
   }
+
+  return <>{children}</>;
 }

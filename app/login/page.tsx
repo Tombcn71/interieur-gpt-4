@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth/next";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
 import { LoginForm } from "@/components/login-form";
 import { GoogleOAuthGuide } from "@/components/google-oauth-guide";
 import { GoogleConfigChecker } from "@/components/google-config-checker";
@@ -12,21 +9,13 @@ export const metadata: Metadata = {
   description: "Log in op je InterieurGPT account",
 };
 
-export default async function LoginPage() {
-  // Check session on server side
-  try {
-    const session = await getServerSession(authOptions);
-
-    // Only redirect if session exists and this is not an error from a previous redirect
-    if (session) {
-      // Use a more controlled approach to redirect
-      return redirect("/dashboard");
-    }
-  } catch (error) {
-    // Log the error but don't throw it
-    console.error("Error checking session:", error);
-    // Continue to login form if there's an error
-  }
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { callbackUrl?: string; error?: string };
+}) {
+  // Don't use getServerSession here to avoid redirect loops
+  // We'll rely on client-side session checking in the LoginForm component
 
   const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -35,7 +24,10 @@ export default async function LoginPage() {
       <div className="absolute top-8 left-8">
         <Logo />
       </div>
-      <LoginForm />
+      <LoginForm
+        callbackUrl={searchParams.callbackUrl}
+        error={searchParams.error}
+      />
       {isDevelopment && (
         <>
           <GoogleOAuthGuide />
