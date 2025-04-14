@@ -58,15 +58,15 @@ export function HomeHeader() {
     <header className="border-b">
       <div className="container px-4 sm:px-6 flex h-16 items-center justify-between">
         <Logo />
-        <div className="flex items-center">
+        <div>
           {!isLoggedIn ? (
             <Button asChild className="rounded-full">
               <Link href="/login">Login</Link>
             </Button>
           ) : (
             <Button
-              variant="destructive"
               onClick={handleLogout}
+              variant="destructive"
               className="rounded-full">
               <LogOut className="mr-2 h-4 w-4" />
               Uitloggen
