@@ -9,14 +9,12 @@ export const metadata: Metadata = {
   description: "Log in op je InterieurGPT account",
 };
 
-export default async function LoginPage({
+// This is a simple server component that doesn't check session
+export default function LoginPage({
   searchParams,
 }: {
   searchParams: { callbackUrl?: string; error?: string };
 }) {
-  // Don't use getServerSession here to avoid redirect loops
-  // We'll rely on client-side session checking in the LoginForm component
-
   const isDevelopment = process.env.NODE_ENV === "development";
 
   return (

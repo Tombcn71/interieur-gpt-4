@@ -17,20 +17,33 @@ export function LoginForm({ callbackUrl, error }: LoginFormProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
 
   // Handle redirection if user is already logged in
   useEffect(() => {
-    if (status === "authenticated" && session) {
-      setIsRedirecting(true);
-      router.push(callbackUrl || "/dashboard");
+    // Only redirect if authenticated and we haven't attempted a redirect yet
+    if (status === "authenticated" && session && !redirectAttempted) {
+      setRedirectAttempted(true);
+
+      // Use a timeout to prevent immediate redirect which can cause loops
+      const redirectTimer = setTimeout(() => {
+        router.push(callbackUrl || "/dashboard");
+      }, 100);
+
+      return () => clearTimeout(redirectTimer);
     }
-  }, [session, status, router, callbackUrl]);
+  }, [session, status, router, callbackUrl, redirectAttempted]);
 
   const handleGoogleSignIn = async () => {
+    if (isLoading) return;
+
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: callbackUrl || "/dashboard" });
+      // Use a simple redirect for Google sign-in
+      await signIn("google", {
+        callbackUrl: callbackUrl || "/dashboard",
+        redirect: true,
+      });
     } catch (error) {
       console.error("Sign in error:", error);
       setIsLoading(false);
@@ -45,23 +58,25 @@ export function LoginForm({ callbackUrl, error }: LoginFormProps) {
       callback: "De callback URL is ongeldig.",
       default:
         "Er is een fout opgetreden bij het inloggen. Probeer het opnieuw.",
-      session:
-        "Er is een probleem met je sessie. Probeer opnieuw in te loggen.",
+      auth: "Er is een probleem met je authenticatie. Probeer opnieuw in te loggen.",
     };
 
     return errorMessages[errorCode] || errorMessages.default;
   };
 
-  // If we're redirecting, show a loading state
-  if (isRedirecting) {
+  // If already authenticated and we've attempted to redirect, show loading
+  if (status === "authenticated" && redirectAttempted) {
     return (
       <div className="container flex h-screen w-screen flex-col items-center justify-center">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Redirecting...
+              Je bent al ingelogd
             </h1>
-            <div className="flex justify-center">
+            <p className="text-sm text-muted-foreground">
+              Je wordt doorgestuurd naar het dashboard...
+            </p>
+            <div className="flex justify-center mt-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
           </div>

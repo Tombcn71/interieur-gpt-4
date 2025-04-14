@@ -5,66 +5,61 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if the pathname starts with /dashboard
+  // Skip middleware for API routes and login page
+  if (pathname.startsWith("/api") || pathname === "/login") {
+    return NextResponse.next();
+  }
+
+  // Only protect dashboard routes
   if (pathname.startsWith("/dashboard")) {
     try {
+      // Get token with minimal options to avoid errors
       const token = await getToken({
         req: request,
         secret: process.env.NEXTAUTH_SECRET,
       });
 
-      // If the user is not authenticated, redirect to the login page
+      // If no token, redirect to login
       if (!token) {
-        console.log("No token found, redirecting to login");
-        const url = new URL("/login", request.url);
+        // Create login URL
+        const loginUrl = new URL("/login", request.url);
 
-        // Add the callback URL as a query parameter
-        url.searchParams.set("callbackUrl", pathname);
+        // Only add callbackUrl if we're not already coming from login
+        // This helps prevent redirect loops
+        const referer = request.headers.get("referer") || "";
+        if (!referer.includes("/login")) {
+          loginUrl.searchParams.set("callbackUrl", pathname);
+        }
 
-        // Create a response with cache control headers
-        const response = NextResponse.redirect(url);
-        response.headers.set(
-          "Cache-Control",
-          "no-store, no-cache, must-revalidate, proxy-revalidate"
-        );
-        response.headers.set("Pragma", "no-cache");
-        response.headers.set("Expires", "0");
-
-        return response;
+        return NextResponse.redirect(loginUrl);
       }
 
-      // Add cache control headers to the response
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate, proxy-revalidate"
-      );
-      response.headers.set("Pragma", "no-cache");
-      response.headers.set("Expires", "0");
-
-      return response;
+      // User is authenticated, proceed
+      return NextResponse.next();
     } catch (error) {
-      console.error("Error in middleware:", error);
+      console.error("Auth middleware error:", error);
 
-      // If there's an error, redirect to login with an error parameter
-      const url = new URL("/login", request.url);
-      url.searchParams.set("error", "session");
-
-      const response = NextResponse.redirect(url);
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate, proxy-revalidate"
-      );
-      response.headers.set("Pragma", "no-cache");
-      response.headers.set("Expires", "0");
-
-      return response;
+      // On error, redirect to login with error param
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("error", "auth");
+      return NextResponse.redirect(loginUrl);
     }
   }
 
+  // For all other routes, proceed normally
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images (public images folder)
+     * - public files
+     */
+    "/((?!_next/static|_next/image|favicon.ico|images|public).*)",
+  ],
 };
