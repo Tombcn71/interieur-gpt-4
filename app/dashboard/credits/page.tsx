@@ -5,8 +5,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AuthCheck } from "@/components/auth-check";
 import { getUserById, fixNegativeCredits } from "@/lib/db";
-import { Button } from "@/components/ui/button";
-import { RefreshCcw } from "lucide-react";
 
 export default async function CreditsPage() {
   const session = await getServerSession(authOptions);
@@ -48,19 +46,6 @@ export default async function CreditsPage() {
               Je hebt momenteel <span className="font-medium">{credits}</span>{" "}
               credits. Koop meer credits om meer interieurontwerpen te maken.
             </p>
-            <form
-              action="/api/auth/session?update=true"
-              method="get"
-              className="mt-2">
-              <Button
-                type="submit"
-                variant="outline"
-                size="sm"
-                className="gap-2">
-                <RefreshCcw className="h-4 w-4" />
-                Refresh Credits
-              </Button>
-            </form>
           </div>
 
           {showStripePricingTable ? (
