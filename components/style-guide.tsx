@@ -1,6 +1,6 @@
-// Voeg 'use client' toe aan het begin van het bestand, vóór alle imports
 "use client";
 
+import { useState, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -350,10 +350,77 @@ const styleCategories = [
   },
 ];
 
-export function StyleGuide() {
+// Wijzig de TabsCloud component om de actieve tab te markeren en alleen op mobiel te tonen
+function TabsCloud({
+  onSelectCategory,
+  activeTab,
+}: {
+  onSelectCategory: (categoryId: string) => void;
+  activeTab: string;
+}) {
   return (
-    <Tabs defaultValue="basis" className="w-full">
-      <div className="mb-6">
+    <div className="flex flex-wrap gap-2 justify-center mb-8 md:hidden">
+      {styleCategories.map((category) => (
+        <div
+          key={category.id}
+          className={`px-3 py-1 rounded-full text-xs cursor-pointer transition-colors ${
+            activeTab === category.id
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+          }`}
+          onClick={() => onSelectCategory(category.id)}>
+          {category.name}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// StyleImage component to handle image errors properly
+function StyleImage({ style, category }: { style: any; category: any }) {
+  const [imgSrc, setImgSrc] = useState(
+    `/images/styles/${category.id}/${style.value}.jpg`
+  );
+  const [isPlaceholder, setIsPlaceholder] = useState(false);
+
+  // Handle image error
+  const handleImageError = () => {
+    setImgSrc(
+      `/placeholder.svg?height=400&width=600&query=${style.label} ${category.name} interior design style`
+    );
+    setIsPlaceholder(true);
+  };
+
+  return (
+    <div className="aspect-video bg-muted relative">
+      <img
+        src={imgSrc || "/placeholder.svg"}
+        alt={`${style.label} interieurstijl voorbeeld`}
+        className="w-full h-full object-cover"
+        onError={handleImageError}
+      />
+      {isPlaceholder && (
+        <div className="placeholder-indicator absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+          Placeholder
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function StyleGuide() {
+  const [activeTab, setActiveTab] = useState("basis");
+  const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Wijzig de handleSelectCategory functie om het scrollen te verwijderen
+  const handleSelectCategory = (categoryId: string) => {
+    setActiveTab(categoryId);
+    // Verwijder de setTimeout en scrollIntoView code
+  };
+
+  return (
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <div className="mb-6 hidden md:block">
         <div className="overflow-x-auto pb-2">
           <TabsList className="flex border rounded-lg">
             {styleCategories.map((category) => (
@@ -368,12 +435,22 @@ export function StyleGuide() {
         </div>
       </div>
 
+      {/* TabsCloud component */}
+      <TabsCloud
+        onSelectCategory={handleSelectCategory}
+        activeTab={activeTab}
+      />
+
       {styleCategories.map((category) => (
         <TabsContent
           key={category.id}
           value={category.id}
           className="space-y-8">
-          <div className="text-center mb-6">
+          <div
+            className="text-center mb-6"
+            ref={(el) => {
+              categoryRefs.current[category.id] = el;
+            }}>
             <h2 className="text-xl font-bold mb-2">{category.name}</h2>
             <p className="text-sm text-muted-foreground px-4">
               {category.description}
@@ -382,34 +459,11 @@ export function StyleGuide() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {category.styles.map((style) => (
-              <Card key={style.value} className="overflow-hidden">
-                <div className="aspect-video bg-muted relative">
-                  <img
-                    src={`/images/styles/${category.id}/${style.value}.jpg`}
-                    alt={`${style.label} interieurstijl voorbeeld`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Gebruik een placeholder afbeelding in plaats van de afbeelding te verbergen
-                      e.currentTarget.src = `/placeholder.svg?height=400&width=600&query=${style.label} ${category.name} interior design style`;
-
-                      // Voeg een kleine indicator toe dat dit een placeholder is
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        // Controleer of er al een indicator is
-                        const existingIndicator = parent.querySelector(
-                          ".placeholder-indicator"
-                        );
-                        if (!existingIndicator) {
-                          const indicator = document.createElement("div");
-                          indicator.className =
-                            "placeholder-indicator absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full";
-                          indicator.textContent = "Placeholder";
-                          parent.appendChild(indicator);
-                        }
-                      }
-                    }}
-                  />
-                </div>
+              <Card
+                key={style.value}
+                id={`style-${style.value}`}
+                className="overflow-hidden">
+                <StyleImage style={style} category={category} />
                 <CardHeader className="p-4">
                   <CardTitle className="text-lg">{style.label}</CardTitle>
                   <CardDescription className="text-xs">
