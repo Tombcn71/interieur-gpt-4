@@ -129,7 +129,7 @@ const styleCategories = [
         ],
       },
       {
-        value: "wabi-sabi",
+        value: "wabi-sabi1",
         label: "Wabi-Sabi",
         description:
           "Gebaseerd op het Japanse concept van het omarmen van imperfectie. Wabi-sabi interieurs hebben imperfecte, natuurlijke elementen en een rustige sfeer.",
