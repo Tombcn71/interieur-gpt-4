@@ -7,67 +7,8 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Wijzig de volgorde van de styleCategories array zodat "Basis Stijlen" als tweede komt
+// Change the order of the styleCategories array to put "Basis Stijlen" first
 const styleCategories = [
-  {
-    id: "trends",
-    name: "Moderne Trends",
-    description: "De nieuwste trends in interieurontwerp",
-    styles: [
-      {
-        value: "grandmillennial",
-        label: "Grandmillennial",
-        description:
-          "Een moderne interpretatie van traditionele stijlen. Grandmillennial interieurs combineren vintage elementen met hedendaagse stukken.",
-        characteristics: [
-          "Vintage elementen",
-          "Hedendaagse stukken",
-          "Bloemenprints",
-          "Franjes en kwastjes",
-          "Chinoiserie",
-        ],
-      },
-      {
-        value: "wabi-sabi",
-        label: "Wabi-Sabi",
-        description:
-          "Gebaseerd op het Japanse concept van het omarmen van imperfectie. Wabi-sabi interieurs hebben imperfecte, natuurlijke elementen en een rustige sfeer.",
-        characteristics: [
-          "Imperfecte elementen",
-          "Natuurlijke materialen",
-          "Rustige sfeer",
-          "Eenvoud",
-          "Handgemaakte items",
-        ],
-      },
-      {
-        value: "cottagecore",
-        label: "Cottagecore",
-        description:
-          "Romantisch en nostalgisch, geïnspireerd door het plattelandsleven. Cottagecore interieurs hebben bloemenprints, vintage items en een gezellige sfeer.",
-        characteristics: [
-          "Bloemenprints",
-          "Vintage items",
-          "Gezellige sfeer",
-          "Handgemaakte decoratie",
-          "Natuurlijke elementen",
-        ],
-      },
-      {
-        value: "industrial-chic",
-        label: "Industrial Chic",
-        description:
-          "Een verfijnde versie van de industriële stijl. Industrial chic interieurs combineren ruwe industriële elementen met luxe details.",
-        characteristics: [
-          "Industriële elementen",
-          "Luxe details",
-          "Contrast in texturen",
-          "Metaal en hout",
-          "Statement verlichting",
-        ],
-      },
-    ],
-  },
   {
     id: "basis",
     name: "Basis Stijlen",
@@ -162,6 +103,65 @@ const styleCategories = [
           "Rijke materialen",
           "Traditionele meubels",
           "Elegante accessoires",
+        ],
+      },
+    ],
+  },
+  {
+    id: "trends",
+    name: "Moderne Trends",
+    description: "De nieuwste trends in interieurontwerp",
+    styles: [
+      {
+        value: "grandmillennial",
+        label: "Grandmillennial",
+        description:
+          "Een moderne interpretatie van traditionele stijlen. Grandmillennial interieurs combineren vintage elementen met hedendaagse stukken.",
+        characteristics: [
+          "Vintage elementen",
+          "Hedendaagse stukken",
+          "Bloemenprints",
+          "Franjes en kwastjes",
+          "Chinoiserie",
+        ],
+      },
+      {
+        value: "wabi-sabi",
+        label: "Wabi-Sabi",
+        description:
+          "Gebaseerd op het Japanse concept van het omarmen van imperfectie. Wabi-sabi interieurs hebben imperfecte, natuurlijke elementen en een rustige sfeer.",
+        characteristics: [
+          "Imperfecte elementen",
+          "Natuurlijke materialen",
+          "Rustige sfeer",
+          "Eenvoud",
+          "Handgemaakte items",
+        ],
+      },
+      {
+        value: "cottagecore",
+        label: "Cottagecore",
+        description:
+          "Romantisch en nostalgisch, geïnspireerd door het plattelandsleven. Cottagecore interieurs hebben bloemenprints, vintage items en een gezellige sfeer.",
+        characteristics: [
+          "Bloemenprints",
+          "Vintage items",
+          "Gezellige sfeer",
+          "Handgemaakte decoratie",
+          "Natuurlijke elementen",
+        ],
+      },
+      {
+        value: "industrial-chic",
+        label: "Industrial Chic",
+        description:
+          "Een verfijnde versie van de industriële stijl. Industrial chic interieurs combineren ruwe industriële elementen met luxe details.",
+        characteristics: [
+          "Industriële elementen",
+          "Luxe details",
+          "Contrast in texturen",
+          "Metaal en hout",
+          "Statement verlichting",
         ],
       },
     ],
@@ -349,7 +349,7 @@ const styleCategories = [
 
 export function StyleGuide() {
   return (
-    <Tabs defaultValue="trends" className="w-full">
+    <Tabs defaultValue="basis" className="w-full">
       <TabsList className="flex flex-wrap overflow-x-auto justify-start sm:justify-center mb-4 sm:mb-8 border rounded-lg p-1">
         {styleCategories.map((category) => (
           <TabsTrigger

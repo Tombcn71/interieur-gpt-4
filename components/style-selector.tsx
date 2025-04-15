@@ -4,17 +4,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-// Wijzig de volgorde van de styleCategories array zodat "Basis Stijlen" als tweede komt
+// Change the order of the styleCategories array to put "Basis Stijlen" first
 const styleCategories = [
-  {
-    name: "Moderne Trends",
-    styles: [
-      { value: "grandmillennial", label: "Grandmillennial" },
-      { value: "wabi-sabi", label: "Wabi-Sabi" },
-      { value: "cottagecore", label: "Cottagecore" },
-      { value: "industrial-chic", label: "Industrial Chic" },
-    ],
-  },
   {
     name: "Basis Stijlen",
     styles: [
@@ -25,6 +16,15 @@ const styleCategories = [
       { value: "bohemian", label: "Bohemian" },
       { value: "landelijk", label: "Landelijk" },
       { value: "klassiek", label: "Klassiek" },
+    ],
+  },
+  {
+    name: "Moderne Trends",
+    styles: [
+      { value: "grandmillennial", label: "Grandmillennial" },
+      { value: "wabi-sabi", label: "Wabi-Sabi" },
+      { value: "cottagecore", label: "Cottagecore" },
+      { value: "industrial-chic", label: "Industrial Chic" },
     ],
   },
   {
@@ -62,9 +62,10 @@ interface StyleSelectorProps {
 
 export function StyleSelector({ onChange }: StyleSelectorProps) {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([
-    "Moderne Trends",
+    "Basis Stijlen",
   ]);
-  const [selectedStyle, setSelectedStyle] = useState("grandmillennial");
+  // Also update the default selected style to be "modern" from the Basis Stijlen category
+  const [selectedStyle, setSelectedStyle] = useState("modern");
 
   const toggleCategory = (categoryName: string) => {
     setExpandedCategories((prev) =>
