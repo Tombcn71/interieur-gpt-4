@@ -350,56 +350,54 @@ const styleCategories = [
 export function StyleGuide() {
   return (
     <Tabs defaultValue="basis" className="w-full">
-      <TabsList className="w-full grid grid-cols-2 gap-1 p-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-1 mb-4 sm:mb-8 border rounded-lg overflow-visible">
-        {styleCategories.map((category) => (
-          <TabsTrigger
-            key={category.id}
-            value={category.id}
-            className="py-1.5 px-1 rounded-md text-xs font-medium whitespace-normal h-auto flex items-center justify-center text-center">
-            {category.name}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="mb-6">
+        <div className="overflow-x-auto pb-2">
+          <TabsList className="flex border rounded-lg">
+            {styleCategories.map((category) => (
+              <TabsTrigger
+                key={category.id}
+                value={category.id}
+                className="px-3 py-2 text-sm whitespace-nowrap">
+                {category.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+      </div>
 
       {styleCategories.map((category) => (
         <TabsContent
           key={category.id}
           value={category.id}
           className="space-y-8">
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">
-              {category.name}
-            </h2>
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold mb-2">{category.name}</h2>
             <p className="text-sm text-muted-foreground px-4">
               {category.description}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {category.styles.map((style) => (
               <Card key={style.value} className="overflow-hidden">
                 <div className="aspect-video bg-muted relative">
                   <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                    <p className="text-xs sm:text-sm">
+                    <p className="text-xs">
                       Voorbeeldafbeelding van {style.label} stijl
                     </p>
                   </div>
                 </div>
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-lg sm:text-xl">
-                    {style.label}
-                  </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+                <CardHeader className="p-4">
+                  <CardTitle className="text-lg">{style.label}</CardTitle>
+                  <CardDescription className="text-xs">
                     {style.description}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-                  <h4 className="font-medium mb-2 text-sm sm:text-base">
-                    Kenmerken:
-                  </h4>
+                <CardContent className="p-4 pt-0">
+                  <h4 className="font-medium mb-2 text-sm">Kenmerken:</h4>
                   <ul className="list-disc pl-5 space-y-1">
                     {style.characteristics.map((characteristic, index) => (
-                      <li key={index} className="text-xs sm:text-sm">
+                      <li key={index} className="text-xs">
                         {characteristic}
                       </li>
                     ))}
