@@ -1,3 +1,6 @@
+// Voeg 'use client' toe aan het begin van het bestand, vóór alle imports
+"use client";
+
 import {
   Card,
   CardContent,
@@ -351,16 +354,17 @@ export function StyleGuide() {
   return (
     <Tabs defaultValue="basis" className="w-full">
       <div className="mb-6">
-        <div className="flex flex-wrap gap-2 justify-center">
-          {styleCategories.map((category) => (
-            <TabsList key={category.id} className="bg-transparent p-0">
+        <div className="overflow-x-auto pb-2">
+          <TabsList className="flex border rounded-lg">
+            {styleCategories.map((category) => (
               <TabsTrigger
+                key={category.id}
                 value={category.id}
-                className="px-3 py-1.5 text-xs rounded-full border border-gray-200 shadow-sm bg-white data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md">
+                className="px-3 py-2 text-sm whitespace-nowrap">
                 {category.name}
               </TabsTrigger>
-            </TabsList>
-          ))}
+            ))}
+          </TabsList>
         </div>
       </div>
 
@@ -368,10 +372,10 @@ export function StyleGuide() {
         <TabsContent
           key={category.id}
           value={category.id}
-          className="space-y-6">
-          <div className="text-center mb-4">
-            <h2 className="text-lg font-bold mb-1">{category.name}</h2>
-            <p className="text-xs text-muted-foreground px-4">
+          className="space-y-8">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold mb-2">{category.name}</h2>
+            <p className="text-sm text-muted-foreground px-4">
               {category.description}
             </p>
           </div>
@@ -379,31 +383,42 @@ export function StyleGuide() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {category.styles.map((style) => (
               <Card key={style.value} className="overflow-hidden">
-                <div className="aspect-video bg-muted relative overflow-hidden">
+                <div className="aspect-video bg-muted relative">
                   <img
                     src={`/images/styles/${category.id}/${style.value}.jpg`}
                     alt={`${style.label} interieurstijl voorbeeld`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback if image doesn't exist
-                      e.currentTarget.style.display = "none";
+                      // Gebruik een placeholder afbeelding in plaats van de afbeelding te verbergen
+                      e.currentTarget.src = `/placeholder.svg?height=400&width=600&query=${style.label} ${category.name} interior design style`;
 
-                      // Add null check before accessing innerHTML
-                      if (e.currentTarget.parentElement) {
-                        e.currentTarget.parentElement.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-muted-foreground"><p class="text-xs">Voorbeeldafbeelding van ${style.label} stijl</p></div>`;
+                      // Voeg een kleine indicator toe dat dit een placeholder is
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        // Controleer of er al een indicator is
+                        const existingIndicator = parent.querySelector(
+                          ".placeholder-indicator"
+                        );
+                        if (!existingIndicator) {
+                          const indicator = document.createElement("div");
+                          indicator.className =
+                            "placeholder-indicator absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full";
+                          indicator.textContent = "Placeholder";
+                          parent.appendChild(indicator);
+                        }
                       }
                     }}
                   />
                 </div>
-                <CardHeader className="p-3">
-                  <CardTitle className="text-base">{style.label}</CardTitle>
+                <CardHeader className="p-4">
+                  <CardTitle className="text-lg">{style.label}</CardTitle>
                   <CardDescription className="text-xs">
                     {style.description}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <h4 className="font-medium mb-1 text-xs">Kenmerken:</h4>
-                  <ul className="list-disc pl-4 space-y-0.5">
+                <CardContent className="p-4 pt-0">
+                  <h4 className="font-medium mb-2 text-sm">Kenmerken:</h4>
+                  <ul className="list-disc pl-5 space-y-1">
                     {style.characteristics.map((characteristic, index) => (
                       <li key={index} className="text-xs">
                         {characteristic}
