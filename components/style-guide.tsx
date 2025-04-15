@@ -350,12 +350,12 @@ const styleCategories = [
 export function StyleGuide() {
   return (
     <Tabs defaultValue="basis" className="w-full">
-      <TabsList className="w-full grid grid-cols-3 sm:flex sm:flex-wrap justify-center gap-1 mb-4 sm:mb-8 border rounded-lg p-1 overflow-visible">
+      <TabsList className="w-full grid grid-cols-2 gap-2 p-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-1 mb-4 sm:mb-8 border rounded-lg overflow-visible">
         {styleCategories.map((category) => (
           <TabsTrigger
             key={category.id}
             value={category.id}
-            className="text-xs py-2 px-1 sm:px-3 whitespace-normal h-auto flex items-center justify-center text-center">
+            className="py-3 px-2 rounded-md text-sm font-medium whitespace-normal h-auto flex items-center justify-center text-center">
             {category.name}
           </TabsTrigger>
         ))}
