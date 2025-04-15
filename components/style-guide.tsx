@@ -379,12 +379,21 @@ export function StyleGuide() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {category.styles.map((style) => (
               <Card key={style.value} className="overflow-hidden">
-                <div className="aspect-video bg-muted relative">
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                    <p className="text-xs">
-                      Voorbeeldafbeelding van {style.label} stijl
-                    </p>
-                  </div>
+                <div className="aspect-video bg-muted relative overflow-hidden">
+                  <img
+                    src={`/images/styles/${category.id}/${style.value}.jpg`}
+                    alt={`${style.label} interieurstijl voorbeeld`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback if image doesn't exist
+                      e.currentTarget.style.display = "none";
+
+                      // Add null check before accessing innerHTML
+                      if (e.currentTarget.parentElement) {
+                        e.currentTarget.parentElement.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-muted-foreground"><p class="text-xs">Voorbeeldafbeelding van ${style.label} stijl</p></div>`;
+                      }
+                    }}
+                  />
                 </div>
                 <CardHeader className="p-3">
                   <CardTitle className="text-base">{style.label}</CardTitle>
