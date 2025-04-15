@@ -322,7 +322,7 @@ const styleCategories = [
         ],
       },
       {
-        value: "vintage1",
+        value: "vintage",
         label: "Vintage",
         description:
           "Nostalgisch met items uit het verleden. Vintage interieurs hebben antieke meubels, retro accessoires en een gevoel van geschiedenis.",
