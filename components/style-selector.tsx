@@ -61,9 +61,7 @@ interface StyleSelectorProps {
 }
 
 export function StyleSelector({ onChange }: StyleSelectorProps) {
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([
-    "Basis Stijlen",
-  ]);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   // Also update the default selected style to be "modern" from the Basis Stijlen category
   const [selectedStyle, setSelectedStyle] = useState("modern");
 
