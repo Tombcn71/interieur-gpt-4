@@ -128,19 +128,7 @@ const styleCategories = [
           "Chinoiserie",
         ],
       },
-      {
-        value: "wabi-sabi",
-        label: "Wabi-Sabi",
-        description:
-          "Gebaseerd op het Japanse concept van het omarmen van imperfectie. Wabi-sabi interieurs hebben imperfecte, natuurlijke elementen en een rustige sfeer.",
-        characteristics: [
-          "Imperfecte elementen",
-          "Natuurlijke materialen",
-          "Rustige sfeer",
-          "Eenvoud",
-          "Handgemaakte items",
-        ],
-      },
+
       {
         value: "cottagecore",
         label: "Cottagecore",
@@ -152,6 +140,19 @@ const styleCategories = [
           "Gezellige sfeer",
           "Handgemaakte decoratie",
           "Natuurlijke elementen",
+        ],
+      },
+      {
+        value: "wabi-sabi",
+        label: "Wabi-Sabi",
+        description:
+          "Gebaseerd op het Japanse concept van het omarmen van imperfectie. Wabi-sabi interieurs hebben imperfecte, natuurlijke elementen en een rustige sfeer.",
+        characteristics: [
+          "Imperfecte elementen",
+          "Natuurlijke materialen",
+          "Rustige sfeer",
+          "Eenvoud",
+          "Handgemaakte items",
         ],
       },
       {
