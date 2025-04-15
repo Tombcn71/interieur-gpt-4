@@ -351,17 +351,16 @@ export function StyleGuide() {
   return (
     <Tabs defaultValue="basis" className="w-full">
       <div className="mb-6">
-        <div className="overflow-x-auto pb-2">
-          <TabsList className="flex border rounded-lg">
-            {styleCategories.map((category) => (
+        <div className="flex flex-wrap gap-2 justify-center">
+          {styleCategories.map((category) => (
+            <TabsList key={category.id} className="bg-transparent p-0">
               <TabsTrigger
-                key={category.id}
                 value={category.id}
-                className="px-3 py-2 text-sm whitespace-nowrap">
+                className="px-3 py-1.5 text-xs rounded-full border border-gray-200 shadow-sm bg-white data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 {category.name}
               </TabsTrigger>
-            ))}
-          </TabsList>
+            </TabsList>
+          ))}
         </div>
       </div>
 
@@ -369,10 +368,10 @@ export function StyleGuide() {
         <TabsContent
           key={category.id}
           value={category.id}
-          className="space-y-8">
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-bold mb-2">{category.name}</h2>
-            <p className="text-sm text-muted-foreground px-4">
+          className="space-y-6">
+          <div className="text-center mb-4">
+            <h2 className="text-lg font-bold mb-1">{category.name}</h2>
+            <p className="text-xs text-muted-foreground px-4">
               {category.description}
             </p>
           </div>
@@ -387,15 +386,15 @@ export function StyleGuide() {
                     </p>
                   </div>
                 </div>
-                <CardHeader className="p-4">
-                  <CardTitle className="text-lg">{style.label}</CardTitle>
+                <CardHeader className="p-3">
+                  <CardTitle className="text-base">{style.label}</CardTitle>
                   <CardDescription className="text-xs">
                     {style.description}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <h4 className="font-medium mb-2 text-sm">Kenmerken:</h4>
-                  <ul className="list-disc pl-5 space-y-1">
+                <CardContent className="p-3 pt-0">
+                  <h4 className="font-medium mb-1 text-xs">Kenmerken:</h4>
+                  <ul className="list-disc pl-4 space-y-0.5">
                     {style.characteristics.map((characteristic, index) => (
                       <li key={index} className="text-xs">
                         {characteristic}
