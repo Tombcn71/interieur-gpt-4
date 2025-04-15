@@ -28,7 +28,7 @@ export default function Home() {
                     Jouw persoonlijke <span className="text-blue-500">AI</span>
                   </span>{" "}
                   <br className="hidden sm:inline" />
-                  interieurontwerper✨
+                  interieurontwerper
                 </h1>
 
                 <div className="pt-2 md:pt-4 space-y-4 sm:space-y-0 sm:flex sm:gap-4">
@@ -83,9 +83,7 @@ export default function Home() {
                     alt="Modern interior design"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-4 py-1 font-medium text-sm">
-                    AI-gegenereerd interieur
-                  </div>
+                  <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-4 py-1 font-medium text-sm"></div>
                 </div>
               </div>
             </div>
