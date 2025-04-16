@@ -36,7 +36,7 @@ export default function Home() {
                     asChild
                     className="rounded-full h-12 md:h-14 px-6 md:px-8 text-base md:text-lg w-full sm:w-auto">
                     <Link href="/login">
-                      Herontwerp je kamer
+                      Herontwerp je interieur
                       <svg
                         className="ml-2 h-5 w-5"
                         fill="none"

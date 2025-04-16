@@ -26,7 +26,7 @@ export default function StyleGuidePage() {
             <Button
               asChild
               className="rounded-full text-xs sm:text-sm py-1 px-3 sm:py-2 sm:px-4 h-8 sm:h-10">
-              <Link href="/login">Begin nu</Link>
+              <Link href="/login">Begin Herontwerp</Link>
             </Button>
           </div>
         </div>
