@@ -39,8 +39,11 @@ export default function StyleGuidePage() {
                 Interieurstijlen Gids
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground max-w-[600px] mx-auto px-4">
-                Ontdek alle interieurstijlen die je kunt gebruiken om je ruimte
-                te transformeren
+                Ontdek alle interieurstijlen die je kunt gebruiken met{" "}
+                <Link href="/">
+                  <span className="text-blue-500">interieurGPT</span>{" "}
+                </Link>{" "}
+                om je ruimte te transformeren
               </p>
             </div>
 

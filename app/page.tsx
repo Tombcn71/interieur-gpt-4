@@ -6,7 +6,6 @@ import { HomeHeader } from "@/components/home-header";
 import { ReviewsSection } from "@/components/reviews-section";
 import { PricingSection } from "@/components/pricing-section";
 import { FAQSection } from "@/components/faq-section";
-
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
