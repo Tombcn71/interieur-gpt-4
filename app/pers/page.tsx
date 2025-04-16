@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, FileText, ImageIcon, Users } from "lucide-react";
 import Link from "next/link";
+import { Footer } from "@/components/footer";
 
 export const metadata = {
   title: "Perskit - InterieurGPT",
@@ -47,7 +48,7 @@ export default function PressKitPage() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                     asChild>
                     <a href="/api/press-kit/logos" download>
                       <Download className="mr-2 h-4 w-4" />
@@ -55,7 +56,7 @@ export default function PressKitPage() {
                     </a>
                   </Button>
                   <Button
-                    className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                     asChild>
                     <a href="/api/press-kit/brand-guidelines" download>
                       <FileText className="mr-2 h-4 w-4" />
@@ -84,7 +85,7 @@ export default function PressKitPage() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                     asChild>
                     <a href="/api/press-kit/screenshots" download>
                       <ImageIcon className="mr-2 h-4 w-4" />
@@ -92,7 +93,7 @@ export default function PressKitPage() {
                     </a>
                   </Button>
                   <Button
-                    className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                     asChild>
                     <a href="/api/press-kit/product-photos" download>
                       <ImageIcon className="mr-2 h-4 w-4" />
@@ -141,7 +142,7 @@ export default function PressKitPage() {
                     </ul>
                   </div>
                   <Button
-                    className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                     asChild>
                     <a href="/api/press-kit/company-info" download>
                       <FileText className="mr-2 h-4 w-4" />
@@ -170,7 +171,7 @@ export default function PressKitPage() {
                       AI gebruikt om interieurontwerp te democratiseren.
                     </p>
                     <Button
-                      className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                      className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                       asChild>
                       <a href="/api/press-kit/press-release-launch" download>
                         <FileText className="mr-2 h-4 w-4" />
@@ -190,7 +191,7 @@ export default function PressKitPage() {
                       meer dan 50.000 gebruikers aangetrokken.
                     </p>
                     <Button
-                      className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                      className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                       asChild>
                       <a href="/api/press-kit/press-release-milestone" download>
                         <FileText className="mr-2 h-4 w-4" />
@@ -199,7 +200,7 @@ export default function PressKitPage() {
                     </Button>
                   </div>
                   <Button
-                    className="text-sm py-1 h-auto border bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="text-sm py-1 h-auto border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
                     asChild>
                     <a href="/api/press-kit/all-press-releases" download>
                       <FileText className="mr-2 h-4 w-4" />
@@ -259,11 +260,6 @@ export default function PressKitPage() {
           </div>
         </div>
       </main>
-      <footer className="border-t py-6">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2023 InterieurGPT. Alle rechten voorbehouden.</p>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -69,7 +69,7 @@ export function PressKitDownload() {
           <Button
             onClick={handleDownload}
             disabled={isDownloading || isDownloaded}
-            className="h-14 px-6 rounded-full shadow-sm text-base">
+            className="h-14 px-6 rounded-full shadow-sm text-base text-primary-foreground">
             {isDownloading ? (
               <>
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>

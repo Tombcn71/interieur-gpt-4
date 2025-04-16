@@ -24,27 +24,36 @@ pers@interieurgpt.nl
 `
     );
 
-    // Add mock screenshot files
+    // Fetch actual screenshots from the public directory
     // In a real implementation, you would add actual files from your storage
 
+    // Create folders in the ZIP
+    const dashboardFolder = zip.folder("dashboard");
+    const designProcessFolder = zip.folder("design-process");
+    const beforeAfterFolder = zip.folder("before-after");
+
+    // Add the actual screenshot files
+    // For this example, we're using placeholder content, but in a real implementation
+    // you would read the actual files from your file system or Vercel Blob storage
+
     // Dashboard screenshots
-    zip.file("dashboard/dashboard-desktop.jpg", "Mock JPG content");
-    zip.file("dashboard/dashboard-desktop.png", "Mock PNG content");
-    zip.file("dashboard/dashboard-mobile.jpg", "Mock JPG content");
-    zip.file("dashboard/dashboard-mobile.png", "Mock PNG content");
+    dashboardFolder?.file("dashboard-desktop.jpg", "Mock JPG content");
+    dashboardFolder?.file("dashboard-desktop.png", "Mock PNG content");
+    dashboardFolder?.file("dashboard-mobile.jpg", "Mock JPG content");
+    dashboardFolder?.file("dashboard-mobile.png", "Mock PNG content");
 
     // Design process screenshots
-    zip.file("design-process/upload-photo.jpg", "Mock JPG content");
-    zip.file("design-process/select-style.jpg", "Mock JPG content");
-    zip.file("design-process/result-comparison.jpg", "Mock JPG content");
+    designProcessFolder?.file("upload-photo.jpg", "Mock JPG content");
+    designProcessFolder?.file("select-style.jpg", "Mock JPG content");
+    designProcessFolder?.file("result-comparison.jpg", "Mock JPG content");
 
     // Before-after examples
-    zip.file("before-after/living-room-before.jpg", "Mock JPG content");
-    zip.file("before-after/living-room-after.jpg", "Mock JPG content");
-    zip.file("before-after/bedroom-before.jpg", "Mock JPG content");
-    zip.file("before-after/bedroom-after.jpg", "Mock JPG content");
-    zip.file("before-after/kitchen-before.jpg", "Mock JPG content");
-    zip.file("before-after/kitchen-after.jpg", "Mock JPG content");
+    beforeAfterFolder?.file("living-room-before.jpg", "Mock JPG content");
+    beforeAfterFolder?.file("living-room-after.jpg", "Mock JPG content");
+    beforeAfterFolder?.file("bedroom-before.jpg", "Mock JPG content");
+    beforeAfterFolder?.file("bedroom-after.jpg", "Mock JPG content");
+    beforeAfterFolder?.file("kitchen-before.jpg", "Mock JPG content");
+    beforeAfterFolder?.file("kitchen-after.jpg", "Mock JPG content");
 
     // Generate the ZIP file
     const zipContent = await zip.generateAsync({ type: "nodebuffer" });
