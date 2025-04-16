@@ -61,6 +61,7 @@ export function HomeHeader() {
         <div>
           {!isLoggedIn ? (
             <Button
+              size="default"
               asChild
               className="rounded-full text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4">
               <Link href="/login">Login</Link>

@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense } from "react";
 import { ClientSessionProvider } from "@/components/client-session-provider";
+import { Footer } from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,7 +31,8 @@ export default function RootLayout({
             disableTransitionOnChange>
             <Suspense fallback={<div className="p-4">Loading...</div>}>
               {children}
-            </Suspense>
+            </Suspense>{" "}
+            <Footer />
             <Toaster />
           </ThemeProvider>
         </ClientSessionProvider>

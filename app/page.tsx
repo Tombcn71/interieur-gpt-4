@@ -6,6 +6,7 @@ import { HomeHeader } from "@/components/home-header";
 import { ReviewsSection } from "@/components/reviews-section";
 import { PricingSection } from "@/components/pricing-section";
 import { FAQSection } from "@/components/faq-section";
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -36,7 +37,7 @@ export default function Home() {
                     asChild
                     className="rounded-full h-12 md:h-14 px-6 md:px-8 text-base md:text-lg w-full sm:w-auto">
                     <Link href="/login">
-                      Herontwerp je interieur
+                      Herontwerp je kamer
                       <svg
                         className="ml-2 h-5 w-5"
                         fill="none"
@@ -122,34 +123,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="container px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <p className="text-sm text-muted-foreground">
-              © 2023 InterieurGPT. Alle rechten voorbehouden.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-6 justify-center">
-            <Link
-              href="/privacy"
-              className="text-sm text-muted-foreground hover:text-foreground">
-              Privacybeleid
-            </Link>
-            <Link
-              href="/voorwaarden"
-              className="text-sm text-muted-foreground hover:text-foreground">
-              Gebruiksvoorwaarden
-            </Link>
-            <Link
-              href="/contact"
-              className="text-sm text-muted-foreground hover:text-foreground">
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
