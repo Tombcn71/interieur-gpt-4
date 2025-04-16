@@ -31,12 +31,16 @@ export function ScreenshotUploader() {
   const [preview, setPreview] = useState<string | null>(null);
   const [category, setCategory] = useState<ScreenshotCategory>("dashboard");
   const [filename, setFilename] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Store the selected file
+    setSelectedFile(file);
 
     // Create preview
     const reader = new FileReader();
@@ -50,7 +54,7 @@ export function ScreenshotUploader() {
   };
 
   const handleUpload = async () => {
-    if (!preview || !filename) {
+    if (!preview || !filename || !selectedFile) {
       toast({
         title: "Fout",
         description: "Selecteer een bestand en geef een bestandsnaam op",
@@ -62,19 +66,17 @@ export function ScreenshotUploader() {
     setIsUploading(true);
 
     try {
-      // Get the file from the input
-      const fileInput = fileInputRef.current;
-      if (!fileInput?.files?.[0]) {
-        throw new Error("Geen bestand geselecteerd");
-      }
-
-      const file = fileInput.files[0];
-
-      // Create a FormData object
+      // Create a FormData object using the stored file
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", selectedFile);
       formData.append("category", category);
       formData.append("filename", filename);
+
+      console.log("Uploading file:", {
+        name: selectedFile.name,
+        size: selectedFile.size,
+        type: selectedFile.type,
+      });
 
       // Send the file to the server
       const response = await fetch("/api/press-kit/upload-screenshot", {
@@ -98,6 +100,7 @@ export function ScreenshotUploader() {
       // Reset the form
       setPreview(null);
       setFilename("");
+      setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -119,6 +122,7 @@ export function ScreenshotUploader() {
   const handleRemove = () => {
     setPreview(null);
     setFilename("");
+    setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -213,11 +217,20 @@ export function ScreenshotUploader() {
             </p>
           </div>
         )}
+
+        {/* Debug info */}
+        {selectedFile && (
+          <div className="text-xs text-muted-foreground border-t pt-2 mt-2">
+            <p>Geselecteerd bestand: {selectedFile.name}</p>
+            <p>Grootte: {Math.round(selectedFile.size / 1024)} KB</p>
+            <p>Type: {selectedFile.type}</p>
+          </div>
+        )}
       </CardContent>
       <CardFooter>
         <Button
           onClick={handleUpload}
-          disabled={isUploading || !preview}
+          disabled={isUploading || !preview || !selectedFile}
           className="ml-auto">
           {isUploading ? (
             <>

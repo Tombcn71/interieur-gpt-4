@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
     // Parse the form data
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file") as File | null;
     const category = formData.get("category") as string;
     const filename = formData.get("filename") as string;
 
@@ -26,11 +26,19 @@ export async function POST(req: Request) {
       filename,
       fileSize: file?.size,
       fileType: file?.type,
+      fileExists: !!file,
     });
 
-    if (!file || !category || !filename) {
+    if (!file) {
       return NextResponse.json(
-        { error: "Bestand, categorie en bestandsnaam zijn verplicht" },
+        { error: "Geen bestand ontvangen" },
+        { status: 400 }
+      );
+    }
+
+    if (!category || !filename) {
+      return NextResponse.json(
+        { error: "Categorie en bestandsnaam zijn verplicht" },
         { status: 400 }
       );
     }
