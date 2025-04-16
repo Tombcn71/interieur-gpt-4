@@ -5,12 +5,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense } from "react";
-import { DatabaseCheck } from "@/components/database-check";
-import { StripeCheck } from "@/components/stripe-check";
 import { ClientSessionProvider } from "@/components/client-session-provider";
-import { SetupGuide } from "@/components/setup-guide";
-import { EnvChecker } from "@/components/env-checker";
-import { ReplicateCheck } from "@/components/replicate-check";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,11 +32,6 @@ export default function RootLayout({
               {children}
             </Suspense>
             <Toaster />
-            <DatabaseCheck />
-            <StripeCheck />
-            <EnvChecker />
-            <ReplicateCheck />
-            {process.env.NODE_ENV === "development" && <SetupGuide />}
           </ThemeProvider>
         </ClientSessionProvider>
       </body>
