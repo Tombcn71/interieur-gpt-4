@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +32,7 @@ export function ScreenshotUploader() {
   const [category, setCategory] = useState<ScreenshotCategory>("dashboard");
   const [filename, setFilename] = useState("");
   const { toast } = useToast();
-  const fileInputRef = useState<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,10 +83,12 @@ export function ScreenshotUploader() {
       });
 
       if (!response.ok) {
-        throw new Error("Upload mislukt");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Upload mislukt");
       }
 
       const data = await response.json();
+      console.log("Upload response:", data);
 
       toast({
         title: "Succes",
@@ -104,7 +106,9 @@ export function ScreenshotUploader() {
       toast({
         title: "Fout",
         description:
-          "Er is een fout opgetreden bij het uploaden van de screenshot",
+          error instanceof Error
+            ? error.message
+            : "Er is een fout opgetreden bij het uploaden van de screenshot",
         variant: "destructive",
       });
     } finally {
@@ -154,7 +158,7 @@ export function ScreenshotUploader() {
                 id="screenshot"
                 type="file"
                 accept="image/*"
-                ref={(el) => (fileInputRef.current = el)}
+                ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
               />

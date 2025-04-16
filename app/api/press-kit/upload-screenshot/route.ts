@@ -21,6 +21,13 @@ export async function POST(req: Request) {
     const category = formData.get("category") as string;
     const filename = formData.get("filename") as string;
 
+    console.log("Received upload request:", {
+      category,
+      filename,
+      fileSize: file?.size,
+      fileType: file?.type,
+    });
+
     if (!file || !category || !filename) {
       return NextResponse.json(
         { error: "Bestand, categorie en bestandsnaam zijn verplicht" },
@@ -52,20 +59,51 @@ export async function POST(req: Request) {
     // Create the path for the file
     const path = `press-kit/screenshots/${category}/${filename}.${fileExtension}`;
 
-    // Upload the file to Vercel Blob
-    const { url } = await put(path, file, {
-      access: "public",
-    });
+    console.log("Uploading to Vercel Blob:", { path });
 
-    return NextResponse.json({
-      success: true,
-      url,
-      path,
-    });
+    // Check if BLOB_READ_WRITE_TOKEN is set
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error("BLOB_READ_WRITE_TOKEN is not set");
+      return NextResponse.json(
+        {
+          error:
+            "Vercel Blob is niet geconfigureerd. Controleer of BLOB_READ_WRITE_TOKEN is ingesteld.",
+        },
+        { status: 500 }
+      );
+    }
+
+    try {
+      // Upload the file to Vercel Blob
+      const { url } = await put(path, file, {
+        access: "public",
+      });
+
+      console.log("Successfully uploaded to Vercel Blob:", { url });
+
+      return NextResponse.json({
+        success: true,
+        url,
+        path,
+      });
+    } catch (blobError) {
+      console.error("Vercel Blob upload error:", blobError);
+      return NextResponse.json(
+        {
+          error: "Fout bij uploaden naar Vercel Blob",
+          details:
+            blobError instanceof Error ? blobError.message : String(blobError),
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error uploading screenshot:", error);
     return NextResponse.json(
-      { error: "Er is een fout opgetreden bij het uploaden van de screenshot" },
+      {
+        error: "Er is een fout opgetreden bij het uploaden van de screenshot",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
