@@ -203,7 +203,7 @@ const styleCategories = [
         ],
       },
       {
-        value: "japandi",
+        value: "japandi1",
         label: "Japandi",
         description:
           "Een fusie van Japans en Scandinavisch design. Japandi interieurs zijn minimalistisch maar warm, met natuurlijke materialen en functionele eenvoud.",
