@@ -1,85 +1,92 @@
 import { NextResponse } from "next/server";
 import { list } from "@vercel/blob";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 
 export async function GET() {
   try {
-    // Check authentication - only allow admins to list press releases
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-    }
-
-    // In a real app, you would check if the user is an admin
-    // For now, we'll just allow any logged-in user
-
     // Check if BLOB_READ_WRITE_TOKEN is set
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
       console.error("BLOB_READ_WRITE_TOKEN is not set");
+      // Return fallback data instead of an error for public page
       return NextResponse.json(
         {
-          error:
-            "Vercel Blob is niet geconfigureerd. Controleer of BLOB_READ_WRITE_TOKEN is ingesteld.",
+          success: true,
+          pressReleases: [],
         },
-        { status: 500 }
+        {
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
       );
     }
 
-    // List all metadata JSON files with the press-kit/press-releases prefix
+    // List all blobs with the press-kit/press-releases prefix
     const { blobs } = await list({
       prefix: "press-kit/press-releases/",
-      limit: 100,
     });
 
-    console.log(`Found ${blobs.length} press release files`);
+    console.log(`Found ${blobs.length} press releases`);
 
-    // Filter only the JSON metadata files
-    const metadataFiles = blobs.filter((blob) =>
-      blob.pathname.endsWith(".json")
-    );
+    // Transform the blobs into a more user-friendly format
+    const pressReleases = blobs.map((blob) => {
+      // Extract metadata from the path
+      const pathParts = blob.pathname
+        .replace("press-kit/press-releases/", "")
+        .split("/");
+      const category = pathParts[0];
 
-    console.log(`Found ${metadataFiles.length} press release metadata files`);
+      // Extract filename and format
+      const filenameWithFormat =
+        pathParts[1] || blob.pathname.split("/").pop() || "unknown";
+      const parts = filenameWithFormat.split(".");
+      const format = parts.pop() || "pdf"; // Default to pdf if no extension
+      const filename = parts.join(".");
 
-    // Fetch the content of each metadata file
-    const pressReleases = await Promise.all(
-      metadataFiles.map(async (blob) => {
-        try {
-          const response = await fetch(blob.url);
-          if (!response.ok) {
-            console.error(
-              `Failed to fetch metadata from ${blob.url}: ${response.status} ${response.statusText}`
-            );
-            return null;
-          }
-          const metadata = await response.json();
-          return metadata;
-        } catch (error) {
-          console.error(`Error parsing metadata from ${blob.url}:`, error);
-          return null;
-        }
-      })
-    );
+      // Extract metadata from filename (assuming format: YYYY-MM-DD-title.ext)
+      const dateMatch = filename.match(/^(\d{4}-\d{2}-\d{2})-(.+)$/);
 
-    // Filter out any null values and sort by release date (newest first)
-    const validPressReleases = pressReleases
-      .filter((pr) => pr !== null)
-      .sort(
-        (a, b) =>
-          new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
-      );
+      let date = "";
+      let title = filename;
 
-    console.log(`Returning ${validPressReleases.length} valid press releases`);
+      if (dateMatch) {
+        const [, dateStr, titleStr] = dateMatch;
+        date = dateStr;
+        title = titleStr.replace(/-/g, " ");
+      }
+
+      // Format the date for display
+      const formattedDate = date
+        ? new Date(date).toLocaleDateString("nl-NL", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : "";
+
+      return {
+        url: blob.url,
+        pathname: blob.pathname,
+        filename: `${filename}.${format}`,
+        format,
+        title: title.charAt(0).toUpperCase() + title.slice(1), // Capitalize first letter
+        date: formattedDate,
+        description: `Persbericht: ${title}`,
+        uploadedAt: blob.uploadedAt,
+        size: blob.size,
+      };
+    });
 
     return NextResponse.json(
       {
         success: true,
-        pressReleases: validPressReleases,
+        pressReleases,
       },
       {
         headers: {
-          // Voorkom caching van de response
+          // Prevent caching of the response
           "Cache-Control":
             "no-store, no-cache, must-revalidate, proxy-revalidate",
           Pragma: "no-cache",
@@ -89,12 +96,20 @@ export async function GET() {
     );
   } catch (error) {
     console.error("Error listing press releases:", error);
+    // Return empty array instead of error for public page
     return NextResponse.json(
       {
-        error: "Er is een fout opgetreden bij het ophalen van de persberichten",
-        details: error instanceof Error ? error.message : String(error),
+        success: true,
+        pressReleases: [],
       },
-      { status: 500 }
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
     );
   }
 }
