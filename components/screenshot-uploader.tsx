@@ -35,6 +35,49 @@ export function ScreenshotUploader() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const checkIfBlobIsAvailable = async (
+    url: string,
+    maxAttempts = 5
+  ): Promise<boolean> => {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        console.log(
+          `Checking if blob is available (attempt ${attempt + 1}): ${url}`
+        );
+        const response = await fetch(url, {
+          method: "HEAD",
+          cache: "no-store",
+          headers: {
+            Pragma: "no-cache",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+          },
+        });
+
+        if (response.ok) {
+          console.log(`Blob is available: ${url}`);
+          return true;
+        }
+
+        console.log(
+          `Blob not yet available (status: ${response.status}): ${url}`
+        );
+      } catch (e) {
+        console.log(
+          `Error checking blob availability (attempt ${attempt + 1}):`,
+          e
+        );
+      }
+
+      // Wacht 1 seconde tussen pogingen
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    console.log(
+      `Blob still not available after ${maxAttempts} attempts: ${url}`
+    );
+    return false;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -92,12 +135,26 @@ export function ScreenshotUploader() {
       const data = await response.json();
       console.log("Upload response:", data);
 
-      toast({
-        title: "Succes",
-        description: "Screenshot is succesvol geüpload",
-      });
+      const { url, path } = data;
 
-      // Reset the form
+      // Controleer of de blob beschikbaar is
+      const isAvailable = await checkIfBlobIsAvailable(url);
+
+      if (isAvailable) {
+        toast({
+          title: "Succes",
+          description: "Screenshot is succesvol geüpload en is nu beschikbaar",
+        });
+      } else {
+        toast({
+          title: "Let op",
+          description:
+            "Screenshot is geüpload maar is mogelijk nog niet direct beschikbaar. Ververs de pagina over enkele seconden.",
+          variant: "default", // Gebruik "default" in plaats van "warning"
+        });
+      }
+
+      // Reset het formulier
       setPreview(null);
       setFilename("");
       setSelectedFile(null);

@@ -24,6 +24,22 @@ export function ScreenshotBrowser() {
     useState<ScreenshotCategory>("dashboard");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+
+  // Voeg deze functie toe na de useState declaraties
+  useEffect(() => {
+    if (screenshots.length > 0) {
+      console.log(
+        "Screenshots geladen:",
+        screenshots.map((s) => ({
+          url: s.url,
+          category: s.category,
+          filename: s.filename,
+        }))
+      );
+    }
+  }, [screenshots]);
 
   const fetchScreenshots = async () => {
     setIsLoading(true);
@@ -50,8 +66,33 @@ export function ScreenshotBrowser() {
   };
 
   useEffect(() => {
+    // Initiële fetch
     fetchScreenshots();
-  }, []);
+    setLastRefreshed(new Date());
+
+    // Alleen een interval instellen als auto-refresh is ingeschakeld
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (autoRefreshEnabled) {
+      // Ververs elke 30 seconden
+      intervalId = setInterval(() => {
+        console.log("Auto-refreshing screenshots...");
+        fetchScreenshots();
+        setLastRefreshed(new Date());
+      }, 30000); // 30 seconden
+    }
+
+    // Ruim het interval op wanneer de component unmount of wanneer autoRefreshEnabled verandert
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [autoRefreshEnabled]); // Afhankelijk van autoRefreshEnabled
+
+  const toggleAutoRefresh = () => {
+    setAutoRefreshEnabled((prev) => !prev);
+  };
 
   const filteredScreenshots = screenshots.filter(
     (screenshot) => screenshot.category === activeCategory
@@ -61,17 +102,37 @@ export function ScreenshotBrowser() {
     <Card>
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Screenshot Browser</h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchScreenshots}
-            disabled={isLoading}>
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
-            />
-            Vernieuwen
-          </Button>
+          <div>
+            <h2 className="text-xl font-semibold">Screenshot Browser</h2>
+            {lastRefreshed && (
+              <p className="text-xs text-muted-foreground">
+                Laatst ververst: {lastRefreshed.toLocaleTimeString()}
+                {autoRefreshEnabled && " • Auto-refresh ingeschakeld"}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleAutoRefresh}
+              className={autoRefreshEnabled ? "bg-blue-50" : ""}>
+              {autoRefreshEnabled ? "Auto-refresh uit" : "Auto-refresh aan"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                fetchScreenshots();
+                setLastRefreshed(new Date());
+              }}
+              disabled={isLoading}>
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+              />
+              Vernieuwen
+            </Button>
+          </div>
         </div>
 
         <Tabs
@@ -101,30 +162,58 @@ export function ScreenshotBrowser() {
                 {filteredScreenshots.map((screenshot) => (
                   <div key={screenshot.url} className="space-y-2">
                     <div className="relative group">
-                      <img
-                        src={screenshot.url || "/placeholder.svg"}
-                        alt={screenshot.filename}
-                        className="h-32 w-full object-cover rounded-md border"
-                      />
+                      {/* Voeg een fallback en error handling toe */}
+                      <div className="h-32 w-full rounded-md border bg-gray-50 flex items-center justify-center">
+                        <img
+                          src={screenshot.url || "/placeholder.svg"}
+                          alt={screenshot.filename}
+                          className="h-full w-full object-contain rounded-md"
+                          onError={(e) => {
+                            console.error(
+                              `Failed to load image: ${screenshot.url}`
+                            );
+                            // Fallback naar een placeholder
+                            e.currentTarget.src = `/placeholder.svg?height=128&width=256&query=Image%20not%20found`;
+                            // Voeg een class toe om aan te geven dat er een fout is
+                            e.currentTarget.classList.add("error-image");
+                          }}
+                          loading="lazy" // Lazy loading voor betere prestaties
+                          crossOrigin="anonymous" // Probeer CORS-problemen op te lossen
+                        />
+                      </div>
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <Button
                           variant="secondary"
                           size="sm"
                           className="mr-2"
-                          onClick={() => setPreviewUrl(screenshot.url)}>
+                          onClick={() => {
+                            console.log("Opening preview for:", screenshot.url);
+                            setPreviewUrl(screenshot.url);
+                          }}>
                           <Eye className="h-4 w-4 mr-1" />
                           Preview
                         </Button>
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => window.open(screenshot.url, "_blank")}>
+                          onClick={() => {
+                            console.log(
+                              "Opening URL in new tab:",
+                              screenshot.url
+                            );
+                            window.open(screenshot.url, "_blank");
+                          }}>
                           <ExternalLink className="h-4 w-4 mr-1" />
                           Open
                         </Button>
                       </div>
                     </div>
-                    <p className="text-sm truncate">{screenshot.filename}</p>
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm truncate">{screenshot.filename}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(screenshot.uploadedAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -158,17 +247,47 @@ export function ScreenshotBrowser() {
                   ✕
                 </Button>
               </div>
-              <img
-                src={previewUrl || "/placeholder.svg"}
-                alt="Preview"
-                className="max-w-full max-h-[70vh] mx-auto rounded-md"
-              />
-              <div className="mt-4 flex justify-end">
+              <div className="relative bg-gray-100 rounded-md p-2">
+                <img
+                  src={previewUrl || "/placeholder.svg"}
+                  alt="Preview"
+                  className="max-w-full max-h-[70vh] mx-auto rounded-md"
+                  onError={(e) => {
+                    console.error(
+                      `Failed to load preview image: ${previewUrl}`
+                    );
+                    e.currentTarget.src = `/placeholder.svg?height=400&width=600&query=Preview%20image%20not%20found`;
+                  }}
+                  crossOrigin="anonymous"
+                />
+                <div className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm rounded px-2 py-1 text-xs">
+                  URL:{" "}
+                  {previewUrl
+                    ? previewUrl.length > 30
+                      ? previewUrl.substring(0, 30) + "..."
+                      : previewUrl
+                    : "N/A"}
+                </div>
+              </div>
+              <div className="mt-4 flex justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(previewUrl || "");
+                    toast({
+                      title: "URL gekopieerd",
+                      description:
+                        "De afbeeldings-URL is gekopieerd naar het klembord",
+                    });
+                  }}>
+                  URL kopiëren
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => window.open(previewUrl, "_blank")}>
-                  <ExternalLink className="h-4 w-4 mr-2" />
+                  <ExternalLink className="mr-2 h-4 w-4" />
                   Open in nieuw tabblad
                 </Button>
               </div>

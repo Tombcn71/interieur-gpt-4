@@ -34,6 +34,19 @@ export async function GET() {
 
     console.log(`Found ${blobs.length} screenshots`);
 
+    // Voeg deze logging toe na het ophalen van de blobs
+    console.log(
+      `Found ${blobs.length} screenshots with the following details:`
+    );
+    blobs.forEach((blob, index) => {
+      console.log(`Blob ${index + 1}:`, {
+        pathname: blob.pathname,
+        url: blob.url,
+        size: blob.size,
+        uploadedAt: blob.uploadedAt,
+      });
+    });
+
     // Transform the blobs into a more user-friendly format
     const screenshots = blobs.map((blob) => {
       // Extract category and filename from the path
@@ -57,10 +70,34 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({
-      success: true,
-      screenshots,
+    // Voeg deze logging toe na het transformeren van de blobs
+    console.log(
+      `Transformed ${screenshots.length} screenshots with the following details:`
+    );
+    screenshots.forEach((screenshot, index) => {
+      console.log(`Screenshot ${index + 1}:`, {
+        url: screenshot.url,
+        pathname: screenshot.pathname,
+        filename: screenshot.filename,
+        category: screenshot.category,
+      });
     });
+
+    return NextResponse.json(
+      {
+        success: true,
+        screenshots,
+      },
+      {
+        headers: {
+          // Voorkom caching van de response
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
   } catch (error) {
     console.error("Error listing screenshots:", error);
     return NextResponse.json(
