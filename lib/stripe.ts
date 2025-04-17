@@ -15,9 +15,9 @@ export const STRIPE_PRICES = {
 
 // Define credit amounts for each plan
 export const CREDIT_AMOUNTS = {
-  BASIC: 5,
-  STANDARD: 15,
-  PREMIUM: 50,
+  BASIC: 30,
+  STANDARD: 100,
+  PREMIUM: 200,
 };
 
 // Create a mapping from price ID to credit amount
