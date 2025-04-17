@@ -22,7 +22,7 @@ const faqItems = [
   {
     question: "Hoeveel credits heb ik nodig per ontwerp?",
     answer:
-      "Voor elk nieuw ontwerp dat je genereert, wordt 1 credit in rekening gebracht. Je kunt credits kopen in verschillende pakketten: Basis (5 credits), Standaard (15 credits) en Premium (50 credits). Hoe meer credits je in één keer koopt, hoe voordeliger het wordt per ontwerp.",
+      "Voor elk nieuw ontwerp dat je genereert, wordt 1 credit in rekening gebracht. Je kunt credits kopen in verschillende pakketten: Basis (30 credits), Standaard (100 credits) en Premium (200 credits). Hoe meer credits je in één keer koopt, hoe voordeliger het wordt per ontwerp.",
     icon: "credit",
   },
   {

@@ -93,17 +93,13 @@ export default function Home() {
         </section>
         <HowItWorks />
         {/* Reviews Section */}
-
-        {/* Pricing Section */}
-        <PricingSection />
-
+        {/* Pricing Section */} <FAQSection />
         {/* Media Logos */}
         <section className="py-16 bg-gray-50">
           <div className="container px-4 sm:px-6">
-            <FAQSection />
+            <PricingSection />
           </div>
         </section>
-
         {/* CTA Section */}
         <section className="py-16 bg-blue-500 text-white">
           <div className="container px-4 sm:px-6 text-center">
