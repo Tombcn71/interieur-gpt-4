@@ -1,3 +1,8 @@
+"use client";
+
+import type React from "react";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -8,18 +13,94 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-export const metadata = {
-  title: "Contact - InterieurGPT",
-  description:
-    "Neem contact met ons op voor vragen, feedback of ondersteuning.",
-};
+import { Footer } from "@/components/footer";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ContactPage() {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  async function handleSubmit(event: { preventDefault: () => void }) {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const formDataToSend = new FormData();
+
+      // Add form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value);
+      });
+
+      // Add access key
+      formDataToSend.append(
+        "access_key",
+        "0cf2ce0d-ca4a-48bd-a129-5379969be0ae"
+      );
+
+      // Convert to JSON
+      const object = Object.fromEntries(formDataToSend);
+      const json = JSON.stringify(object);
+
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: json,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Bericht verzonden",
+          description:
+            "Bedankt voor je bericht. We nemen zo snel mogelijk contact met je op.",
+        });
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        throw new Error(result.message || "Er is iets misgegaan");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Er is iets misgegaan bij het verzenden van je bericht. Probeer het later opnieuw.";
+
+      toast({
+        title: "Fout bij verzenden",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="border-b">
@@ -77,72 +158,68 @@ export default function ContactPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="first-name">Voornaam</Label>
-                        <Input id="first-name" placeholder="Voornaam" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="last-name">Achternaam</Label>
-                        <Input id="last-name" placeholder="Achternaam" />
-                      </div>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Naam</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        placeholder="Uw naam"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">E-mail</Label>
                       <Input
                         id="email"
+                        name="email"
                         type="email"
                         placeholder="uw@email.nl"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="subject">Onderwerp</Label>
                       <Input
                         id="subject"
+                        name="subject"
                         placeholder="Onderwerp van uw bericht"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="message">Bericht</Label>
                       <Textarea
                         id="message"
+                        name="message"
                         placeholder="Typ uw bericht hier..."
                         rows={5}
+                        value={formData.message}
+                        onChange={handleChange}
+                        required
                       />
                     </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isSubmitting}>
+                      {isSubmitting ? "Verzenden..." : "Verstuur bericht"}
+                    </Button>
                   </form>
                 </CardContent>
-                <CardFooter>
-                  <Button className="w-full">Verstuur bericht</Button>
-                </CardFooter>
               </Card>
             </div>
           </div>
         </div>
       </main>
 
-      <footer className="border-t py-6">
-        <div className="container px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-500">
-              © 2025 InterieurGPT. Alle rechten voorbehouden.
-            </p>
-            <div className="flex gap-6">
-              <Link
-                href="/voorwaarden"
-                className="text-sm text-gray-500 hover:text-gray-900">
-                Gebruiksvoorwaarden
-              </Link>
-              <Link
-                href="/privacy"
-                className="text-sm text-gray-500 hover:text-gray-900">
-                Privacybeleid
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
