@@ -20,10 +20,10 @@ export default function Home() {
           <div className="container px-4 sm:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
               <div className="space-y-6 text-center lg:text-left">
-                <div className="inline-block bg-gray-100 rounded-full px-4 py-2 text-sm">
-                  Gebruikt door meer dan{" "}
+                {/*    <div className="inline-block bg-gray-100 rounded-full px-4 py-2 text-sm">
+                 Gebruikt door meer dan{" "}
                   <span className="text-blue-500 font-medium">1000 mensen</span>
-                </div>
+                </div>*/}
 
                 <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight">
                   <span className="whitespace-nowrap">

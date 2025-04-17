@@ -357,11 +357,8 @@ export function Footer() {
           </p>
           <div className="flex items-center">
             <span className="text-xs text-gray-400 mr-2">
-              Gemaakt in Nederland
+              Gemaakt in Barcelona met ❤️
             </span>
-            <span className="inline-block w-5 h-3 bg-red-500"></span>
-            <span className="inline-block w-5 h-3 bg-white border-t border-b border-gray-300"></span>
-            <span className="inline-block w-5 h-3 bg-blue-500"></span>
           </div>
         </div>
       </div>
