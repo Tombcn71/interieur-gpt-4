@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/navbar";
 import { ScreenshotUploader } from "@/components/screenshot-uploader";
 import { ScreenshotBrowser } from "@/components/screenshot-browser";
+import { LogoUploader } from "@/components/logo-uploader";
+import { LogoBrowser } from "@/components/logo-browser";
 import {
   Card,
   CardContent,
@@ -49,21 +51,9 @@ export default async function PressKitAdminPage() {
               <ScreenshotBrowser />
             </TabsContent>
 
-            <TabsContent value="logos">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Logo's Beheer</CardTitle>
-                  <CardDescription>
-                    Upload en beheer de logo's voor de perskit.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Hier komt de functionaliteit voor het beheren van logo's.
-                    Dit is nog niet geïmplementeerd.
-                  </p>
-                </CardContent>
-              </Card>
+            <TabsContent value="logos" className="space-y-6">
+              <LogoUploader />
+              <LogoBrowser />
             </TabsContent>
 
             <TabsContent value="press-releases">
