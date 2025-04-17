@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create the path for the file
+    // Create the path for the file - ensure the category is included in the path
     const path = `press-kit/screenshots/${category}/${filename}.${fileExtension}`;
 
     console.log("Uploading to Vercel Blob:", { path });
@@ -82,12 +82,14 @@ export async function POST(req: Request) {
     }
 
     try {
-      // Upload the file to Vercel Blob
+      // Upload the file to Vercel Blob with public access
       const { url } = await put(path, file, {
         access: "public",
+        addRandomSuffix: false, // Use exact filename
+        contentType: file.type, // Set the correct content type
       });
 
-      console.log("Successfully uploaded to Vercel Blob:", { url });
+      console.log("Successfully uploaded to Vercel Blob:", { url, path });
 
       return NextResponse.json({
         success: true,

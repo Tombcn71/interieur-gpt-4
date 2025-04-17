@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { ScreenshotUploader } from "@/components/screenshot-uploader";
+import { ScreenshotBrowser } from "@/components/screenshot-browser";
 import {
   Card,
   CardContent,
@@ -45,21 +46,7 @@ export default async function PressKitAdminPage() {
 
             <TabsContent value="screenshots" className="space-y-6">
               <ScreenshotUploader />
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Bestaande Screenshots</CardTitle>
-                  <CardDescription>
-                    Bekijk en beheer de bestaande screenshots in de perskit.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Hier komt een overzicht van de bestaande screenshots. Dit is
-                    nog niet geïmplementeerd.
-                  </p>
-                </CardContent>
-              </Card>
+              <ScreenshotBrowser />
             </TabsContent>
 
             <TabsContent value="logos">
