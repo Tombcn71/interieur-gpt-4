@@ -3,13 +3,8 @@ import { ScreenshotUploader } from "@/components/screenshot-uploader";
 import { ScreenshotBrowser } from "@/components/screenshot-browser";
 import { LogoUploader } from "@/components/logo-uploader";
 import { LogoBrowser } from "@/components/logo-browser";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PressReleaseUploader } from "@/components/press-release-uploader";
+import { PressReleaseBrowser } from "@/components/press-release-browser";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -56,21 +51,9 @@ export default async function PressKitAdminPage() {
               <LogoBrowser />
             </TabsContent>
 
-            <TabsContent value="press-releases">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Persberichten Beheer</CardTitle>
-                  <CardDescription>
-                    Upload en beheer de persberichten voor de perskit.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Hier komt de functionaliteit voor het beheren van
-                    persberichten. Dit is nog niet geïmplementeerd.
-                  </p>
-                </CardContent>
-              </Card>
+            <TabsContent value="press-releases" className="space-y-6">
+              <PressReleaseUploader />
+              <PressReleaseBrowser />
             </TabsContent>
           </Tabs>
         </div>
