@@ -15,9 +15,9 @@ export const STRIPE_PRICES = {
 
 // Define credit amounts for each plan
 export const CREDIT_AMOUNTS = {
-  BASIC: 30,
-  STANDARD: 100,
-  PREMIUM: 200,
+  BASIC: 30, // Change this value for the Basic plan
+  STANDARD: 100, // Change this value for the Standard plan
+  PREMIUM: 200, // Change this value for the Premium plan
 };
 
 // Create a mapping from price ID to credit amount
@@ -68,7 +68,9 @@ export async function createCheckoutSession(userId: string, priceId: string) {
   }
 
   try {
-    console.log(`Creating Stripe checkout session with priceId: ${priceId}`);
+    console.log(
+      `Creating Stripe checkout session with priceId: ${priceId} for userId: ${userId}`
+    );
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
