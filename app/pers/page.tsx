@@ -8,7 +8,6 @@ import { Footer } from "@/components/footer";
 import { PressLogos } from "@/components/press-logos";
 import { PressScreenshots } from "@/components/press-screenshots";
 import { PressReleases } from "@/components/press-releases";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata = {
   title: "Perskit - InterieurGPT",
@@ -33,25 +32,19 @@ export default function PressKitPage() {
             <PressKitDownload />
           </div>
 
-          <Tabs defaultValue="logos" className="mb-16">
-            <TabsList className="w-full justify-start mb-8">
-              <TabsTrigger value="logos">Logo's</TabsTrigger>
-              <TabsTrigger value="screenshots">Screenshots</TabsTrigger>
-              <TabsTrigger value="press-releases">Persberichten</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="logos">
+          <div className="space-y-16 mb-16">
+            <section id="logos">
               <PressLogos />
-            </TabsContent>
+            </section>
 
-            <TabsContent value="screenshots">
+            <section id="screenshots">
               <PressScreenshots />
-            </TabsContent>
+            </section>
 
-            <TabsContent value="press-releases">
+            <section id="press-releases">
               <PressReleases />
-            </TabsContent>
-          </Tabs>
+            </section>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             <Card>
