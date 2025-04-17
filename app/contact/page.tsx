@@ -129,19 +129,6 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Adres</h2>
-                  <address className="not-italic">
-                    InterieurGPT B.V.
-                    <br />
-                    Designstraat 42
-                    <br />
-                    1234 AB Amsterdam
-                    <br />
-                    Nederland
-                  </address>
-                </div>
-
-                <div>
                   <h2 className="text-xl font-semibold mb-2">Klantenservice</h2>
                   <p>Beschikbaar op werkdagen van 9:00 tot 17:00</p>
                 </div>

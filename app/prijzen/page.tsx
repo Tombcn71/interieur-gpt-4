@@ -20,14 +20,6 @@ export default async function PricingPage() {
       <Navbar />
       <main className="flex-1 py-16">
         <div className="container">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Prijzen</h1>
-            <p className="text-xl text-muted-foreground max-w-[600px] mx-auto">
-              Kies het plan dat bij je past en begin met het transformeren van
-              je ruimtes.
-            </p>
-          </div>
-
           {showStripePricingTable ? (
             <StripePricingTable
               pricingTableId={pricingTableId}

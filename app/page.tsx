@@ -6,6 +6,7 @@ import { HomeHeader } from "@/components/home-header";
 import { ReviewsSection } from "@/components/reviews-section";
 import { PricingSection } from "@/components/pricing-section";
 import { FAQSection } from "@/components/faq-section";
+import { Footer } from "@/components/footer";
 
 export default function Home() {
   return (
@@ -122,6 +123,7 @@ export default function Home() {
             </Button>
           </div>
         </section>
+        <Footer />
       </main>
     </div>
   );
