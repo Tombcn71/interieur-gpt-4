@@ -18,6 +18,7 @@ interface DesignCardProps {
 
 export function DesignCard({ design }: DesignCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -63,20 +64,46 @@ export function DesignCard({ design }: DesignCardProps) {
     }
   };
 
+  const handleImageError = () => {
+    console.error(`Failed to load image: ${imageUrl}`);
+    setImageError(true);
+  };
+
   return (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-lg group">
       <Link href={`/dashboard/ontwerp/${design.id}`}>
         <CardContent className="p-0">
           <div className="relative aspect-square">
-            <div
-              className="w-full h-full bg-gray-100"
-              style={{
-                backgroundImage: `url('${imageUrl}')`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-              }}
-            />
+            {imageError ? (
+              // Fallback div with background color when image fails to load
+              <div
+                className="w-full h-full bg-gray-200 flex items-center justify-center"
+                aria-label="Afbeelding kon niet worden geladen">
+                <span className="text-gray-500 text-sm">
+                  Afbeelding niet beschikbaar
+                </span>
+              </div>
+            ) : (
+              // Try to load the image with error handling
+              <div
+                className="w-full h-full bg-gray-100"
+                style={{
+                  backgroundImage: `url('${imageUrl}')`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+                onError={handleImageError}>
+                {/* Add a hidden image to trigger the onError event */}
+                <img
+                  src={imageUrl || "/placeholder.svg"}
+                  alt=""
+                  className="hidden"
+                  onError={handleImageError}
+                  crossOrigin="anonymous"
+                />
+              </div>
+            )}
             <div className="absolute top-2 right-2">
               <Badge
                 variant={design.status === "completed" ? "default" : "outline"}
