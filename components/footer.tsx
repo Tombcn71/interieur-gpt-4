@@ -54,17 +54,6 @@ export function Footer() {
                   <span>Stijlgids</span>
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/prijzen"
-                  className="text-sm text-gray-500 hover:text-blue-600 flex items-center">
-                  <FileText
-                    className="h-4 w-4 mr-2 flex-shrink-0"
-                    strokeWidth={1.5}
-                  />
-                  <span>Prijzen</span>
-                </Link>
-              </li>
 
               <li>
                 <Link
@@ -198,17 +187,6 @@ export function Footer() {
                       strokeWidth={1.5}
                     />
                     <span>Stijlgids</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/prijzen"
-                    className="text-sm text-gray-500 hover:text-blue-600 flex items-center">
-                    <FileText
-                      className="h-4 w-4 mr-3 text-gray-400"
-                      strokeWidth={1.5}
-                    />
-                    <span>Prijzen</span>
                   </Link>
                 </li>
 
