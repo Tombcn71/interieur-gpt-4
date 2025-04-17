@@ -83,9 +83,11 @@ export async function POST(req: Request) {
 
     try {
       // Upload the file to Vercel Blob with public access
+      // BELANGRIJK: Voeg allowOverwrite: true toe om bestaande bestanden te overschrijven
       const { url } = await put(path, file, {
         access: "public",
         addRandomSuffix: false, // Use exact filename
+        // Verwijder de 'allowOverwrite' optie omdat deze niet bestaat in het type
         contentType: file.type, // Set the correct content type
       });
 

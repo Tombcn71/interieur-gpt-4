@@ -7,53 +7,27 @@ const MAX_RETRIES = 3;
 // Helper function to wait between retries
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function uploadImage(file: File, retryCount = 0): Promise<string> {
-  try {
-    // Log upload attempt
-    console.log(
-      `Attempting to upload file (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`
-    );
+// Update de uploadImage functie om de juiste opties te gebruiken
+export async function uploadImage(file: File) {
+  const filename = `${nanoid()}-${file.name}`;
+  const { url } = await put(filename, file, {
+    access: "public",
+    addRandomSuffix: true, // Voeg een willekeurig achtervoegsel toe om unieke bestandsnamen te garanderen
+    // Verwijder eventuele ongeldige opties
+  });
 
-    // Check if BLOB_READ_WRITE_TOKEN is set
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.error("BLOB_READ_WRITE_TOKEN is not set");
-      throw new Error(
-        "Vercel Blob is niet geconfigureerd. BLOB_READ_WRITE_TOKEN ontbreekt."
-      );
-    }
-
-    // Generate a unique filename
-    const filename = `${nanoid()}-${file.name}`;
-
-    // Upload to Vercel Blob
-    const { url } = await put(filename, file, {
-      access: "public",
-      contentType: file.type, // Ensure correct content type
-    });
-
-    console.log("Upload successful:", url);
-    return url;
-  } catch (error) {
-    // Log the error
-    console.error(
-      `Upload error (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`,
-      error
-    );
-
-    // If we haven't reached max retries, try again
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying upload in ${(retryCount + 1) * 1000}ms...`);
-      await wait((retryCount + 1) * 1000); // Exponential backoff
-      return uploadImage(file, retryCount + 1);
-    }
-
-    // If we've reached max retries, throw the error
-    throw error;
-  }
+  return url;
 }
 
-export async function uploadImageBuffer(file: File): Promise<string> {
-  return uploadImage(file); // Use the same function with retry logic
+export async function uploadImageBuffer(file: File) {
+  const filename = `${nanoid()}-${file.name}`;
+  const { url } = await put(filename, file, {
+    access: "public",
+    addRandomSuffix: true, // Voeg een willekeurig achtervoegsel toe om unieke bestandsnamen te garanderen
+    // Verwijder eventuele ongeldige opties
+  });
+
+  return url;
 }
 
 // Function to check Vercel Blob configuration
