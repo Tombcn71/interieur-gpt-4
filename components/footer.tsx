@@ -34,8 +34,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-gray-500 max-w-xs">
-              Transformeer je interieur met AI-gegenereerde ontwerpen. Upload
-              een foto, kies een stijl en ontvang direct een nieuw ontwerp.
+              Herontwerp je interieur met AI-gegenereerde ontwerpen. Upload een
+              foto, kies een stijl en ontvang direct een nieuw ontwerp.
             </p>
           </div>
 
@@ -65,17 +65,7 @@ export function Footer() {
                   <span>Prijzen</span>
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/faq"
-                  className="text-sm text-gray-500 hover:text-blue-600 flex items-center">
-                  <FileQuestion
-                    className="h-4 w-4 mr-2 flex-shrink-0"
-                    strokeWidth={1.5}
-                  />
-                  <span>FAQ</span>
-                </Link>
-              </li>
+
               <li>
                 <Link
                   href="/contact"
@@ -114,17 +104,6 @@ export function Footer() {
                     strokeWidth={1.5}
                   />
                   <span>Privacybeleid</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/pers"
-                  className="text-sm text-gray-500 hover:text-blue-600 flex items-center">
-                  <FileText
-                    className="h-4 w-4 mr-2 flex-shrink-0"
-                    strokeWidth={1.5}
-                  />
-                  <span>Pers</span>
                 </Link>
               </li>
             </ul>
@@ -232,17 +211,7 @@ export function Footer() {
                     <span>Prijzen</span>
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/faq"
-                    className="text-sm text-gray-500 hover:text-blue-600 flex items-center">
-                    <FileQuestion
-                      className="h-4 w-4 mr-3 text-gray-400"
-                      strokeWidth={1.5}
-                    />
-                    <span>FAQ</span>
-                  </Link>
-                </li>
+
                 <li>
                   <Link
                     href="/contact"
@@ -281,17 +250,6 @@ export function Footer() {
                       strokeWidth={1.5}
                     />
                     <span>Privacy</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/pers"
-                    className="text-sm text-gray-500 hover:text-blue-600 flex items-center">
-                    <FileText
-                      className="h-4 w-4 mr-3 text-gray-400"
-                      strokeWidth={1.5}
-                    />
-                    <span>Pers</span>
                   </Link>
                 </li>
               </ul>
