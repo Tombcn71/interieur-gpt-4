@@ -219,9 +219,9 @@ export function FAQSection() {
               <MessageCircle className="h-5 w-5 text-blue-500" />
               <span>Heb je een andere vraag?</span>
               <Link
-                href="/faq"
+                href="/contact"
                 className="text-blue-600 font-medium hover:underline flex items-center">
-                Bekijk alle vragen
+                Stuur ons een bericht
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </div>
