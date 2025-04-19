@@ -101,7 +101,7 @@ export default function Home() {
           </div>
         </section>
         {/* CTA Section */}
-        <section className="py-16 bg-blue-500 text-white">
+        <section className="py-16 bg-blue-500 text-white mb-12 md:mb-16">
           <div className="container px-4 sm:px-6 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
               Klaar om je ruimte te transformeren?
