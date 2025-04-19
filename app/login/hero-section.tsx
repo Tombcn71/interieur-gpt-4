@@ -10,13 +10,13 @@ export function HeroSection() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 bg-gradient-to-br from-blue-50 to-blue-100">
-      {/* Users count pill */}
+      {/* Users count pill
       <div className="mb-12 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm px-6 py-3 shadow-sm">
         <p className="text-gray-800 text-sm sm:text-base">
           Al <span className="text-blue-500 font-bold">10.000+ gebruikers</span>{" "}
           hebben interieurGPT gebruikt
         </p>
-      </div>
+      </div> */}
 
       {/* Main headline */}
       <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center mb-6 tracking-tight">
